@@ -50,6 +50,21 @@ const movementTerms = [
   "变焦",
 ];
 
+const unsupportedScriptMarkers = [
+  "承上镜动作",
+  "承上镜",
+  "补充镜头",
+  "新增镜头",
+  "新增过渡",
+  "无原文依据",
+  "非原文",
+  "原文未写",
+  "自行添加",
+  "自行补充",
+  "为了过渡",
+  "建议保留此镜",
+];
+
 function splitRow(line) {
   return line
     .replace(/^\|/, "")
@@ -125,6 +140,28 @@ function parseExplicitHiddenItems(cameraLines) {
     .filter((item) => item && !/^(无|没有|空|暂无)$/.test(item));
 }
 
+function spokenCharCount(textValue) {
+  const matches = [...String(textValue || "").matchAll(/["“]([^"”]+)["”]/g)];
+  return matches
+    .map((match) => match[1].replace(/\s+/g, ""))
+    .reduce((sum, value) => sum + value.length, 0);
+}
+
+function hasDurationEstimate(note) {
+  const value = String(note || "");
+  return (
+    value.includes("[时长估算]") &&
+    /动作\s*\d+(?:\.\d+)?\s*秒/.test(value) &&
+    /台词\s*\d+(?:\.\d+)?\s*秒/.test(value) &&
+    /情绪留白\s*\d+(?:\.\d+)?\s*秒/.test(value)
+  );
+}
+
+function findUnsupportedScriptMarkers(textValue) {
+  const value = String(textValue || "");
+  return unsupportedScriptMarkers.filter((marker) => value.includes(marker));
+}
+
 const headerIndex = tableLines.findIndex((line) => {
   const cells = splitRow(line);
   return cells.length === 8 && cells[0] === "镜号" && cells[6] === "Prompt";
@@ -142,7 +179,6 @@ if (headerIndex === -1) {
   });
 
   let expectedShot = 1;
-  let totalDuration = 0;
   const sceneFirstSeen = new Set();
   let hook = false;
   let conflict = false;
@@ -166,6 +202,10 @@ if (headerIndex === -1) {
 
     if (!scene) errors.push(`镜号${shotRaw}：场景为空。`);
     if (!original) errors.push(`镜号${shotRaw}：原剧本段落为空。`);
+    const unsupportedMarkers = findUnsupportedScriptMarkers(`${original}\n${camera}\n${note}\n${prompt}\n${storyboard}`);
+    if (unsupportedMarkers.length) {
+      errors.push(`镜号${shotRaw}：疑似加入无原文依据内容或用非原文占位替代原文：${unsupportedMarkers.join("、")}。`);
+    }
 
     const normalizedOriginal = normalizeOriginal(original);
     if (normalizedOriginal && normalizedOriginal === previousOriginal && !note.includes("重复原文必要")) {
@@ -177,7 +217,17 @@ if (headerIndex === -1) {
     if (!Number.isFinite(duration) || duration <= 0) {
       errors.push(`镜号${shotRaw}：镜头时长不是正数。`);
     } else {
-      totalDuration += duration;
+      if (duration > 6 && !hasDurationEstimate(note)) {
+        errors.push(`镜号${shotRaw}：超过6秒的镜头必须在备注写 [时长估算] 动作X秒 + 台词X秒 + 情绪留白X秒。`);
+      }
+      if (duration > 10 && !note.includes("[长镜头]")) {
+        errors.push(`镜号${shotRaw}：超过10秒的镜头必须在备注写 [长镜头]。`);
+      }
+      const chars = spokenCharCount(`${original}\n${camera}`);
+      const minDialogueSeconds = chars / 6;
+      if (chars >= 12 && duration < Math.ceil(minDialogueSeconds)) {
+        warnings.push(`镜号${shotRaw}：台词约${chars}字但时长${duration}秒，可能低于急促语速估算。`);
+      }
     }
 
     const cameraLines = cellLines(camera);
@@ -274,8 +324,6 @@ if (headerIndex === -1) {
   }
 
   if (dataLines.length === 0) errors.push("没有找到镜头数据行。");
-  if (dataLines.length > 110) warnings.push(`镜头数 ${dataLines.length} 超过常规上限，请确认是否必要。`);
-  if (totalDuration > 420) errors.push(`总时长 ${totalDuration} 秒超过 420 秒。`);
   if (!hook) warnings.push("未检测到 [前5秒钩子] 标记。");
   if (!conflict) warnings.push("未检测到 [前60秒冲突] 标记。");
   if (!surprise) warnings.push("未检测到 [前120秒超预期] 标记。");

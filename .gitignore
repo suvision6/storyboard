@@ -1,0 +1,5 @@
+.skill-backups/
+*.tmp
+*.bak
+Thumbs.db
+.DS_Store

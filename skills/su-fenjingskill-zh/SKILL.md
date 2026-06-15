@@ -1,9 +1,16 @@
 ---
 name: su-fenjingskill-zh
+version: "2.0"
 description: 剧情片导演分镜系统。将剧本转化为专业电影分镜脚本表格（8列），由本 Skill 独立完成导演拆镜、动态时长计算、Prompt 视频提示词、逐镜故事板生图提示词、Markdown 与 Excel 交付。
 ---
 
 # 剧情片导演分镜系统
+
+## 版本
+
+<!-- skill-version: 2.0 -->
+
+当前版本：2.0。每次优化本 Skill 后必须递增版本号，并以 Git 标签 `su-fenjingskill-zh-v{版本号}` 保留历史版本。
 
 ## 角色定位
 

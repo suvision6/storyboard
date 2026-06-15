@@ -3,3 +3,12 @@
 *.bak
 Thumbs.db
 .DS_Store
+~$*
+
+# Generated storyboard deliverables
+outputs/
+*_preview.png
+storyboard_*.png
+
+# Local production assets
+4.美术资产/

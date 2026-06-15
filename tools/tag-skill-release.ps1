@@ -2,7 +2,9 @@ param(
     [string]$SkillName = "su-fenjingskill-zh",
     [Parameter(Mandatory = $true)]
     [string]$Version,
-    [string]$Message
+    [string]$Message,
+    [string]$Remote = "origin",
+    [switch]$NoPush
 )
 
 $ErrorActionPreference = "Stop"
@@ -27,6 +29,16 @@ try {
 
     git tag -a $TagName -m $Message
     Write-Host "Created release tag: $TagName"
+
+    if (-not $NoPush) {
+        $Branch = git branch --show-current
+        if (-not $Branch) {
+            throw "Cannot determine current branch for push."
+        }
+        git push $Remote $Branch
+        git push $Remote $TagName
+        Write-Host "Pushed $Branch and $TagName to $Remote"
+    }
 }
 finally {
     Pop-Location

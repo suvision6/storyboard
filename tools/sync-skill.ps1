@@ -2,6 +2,7 @@
 param(
     [string]$SkillName = "su-fenjingskill-zh",
     [string]$TargetRoot = (Join-Path $HOME ".codex\skills"),
+    [string]$BackupRoot = (Join-Path $HOME ".codex\skill-backups"),
     [switch]$NoBackup
 )
 
@@ -22,7 +23,6 @@ if (-not (Test-Path -LiteralPath $TargetRoot -PathType Container)) {
 if ($PSCmdlet.ShouldProcess($Target, "Replace installed skill from $Source")) {
     if ((Test-Path -LiteralPath $Target -PathType Container) -and -not $NoBackup) {
         $Timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-        $BackupRoot = Join-Path $TargetRoot "_backups"
         $BackupPath = Join-Path $BackupRoot "$SkillName-$Timestamp"
         New-Item -ItemType Directory -Force -Path $BackupRoot | Out-Null
         Copy-Item -LiteralPath $Target -Destination $BackupPath -Recurse -Force

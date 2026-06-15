@@ -16,7 +16,7 @@ The publish command stages the skill files, commits the update, creates a versio
 Current version:
 
 ```powershell
-2.0
+2.1
 ```
 
 Stable versions are preserved as Git tags named:
@@ -49,7 +49,7 @@ C:\Users\苏苏\.codex\skills\su-fenjingskill-zh
 Before replacement, it copies the existing installed version to:
 
 ```text
-C:\Users\苏苏\.codex\skills\_backups
+C:\Users\苏苏\.codex\skill-backups
 ```
 
 Git tags remain the long-term version history. The backup folder is only a short-term safety copy.

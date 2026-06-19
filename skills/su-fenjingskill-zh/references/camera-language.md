@@ -1,6 +1,6 @@
-﻿# Camera Language Reference
+# Camera Language Reference
 
-Use this reference only when planning shot beats, selecting camera angle/shot size/movement, or writing the 运镜+主画面描述(含台词) column. Do not use it to generate the Prompt column or Storyboard column.
+Use this reference only after Beat IDs and the non-camera director fields are locked, when selecting camera angle/shot size/movement or writing the 运镜+主画面描述(含台词) column. Do not use it to split Beats or generate the Prompt or 关键帧 columns.
 
 ## Contents
 
@@ -39,7 +39,7 @@ Use this reference only when planning shot beats, selecting camera angle/shot si
 
 **每个场景的第一个镜头**，必须在画面描述开头，用一句话明确交代所有出场角色的初始站位和朝向：
 
-> `【场景首镜站位】: A位于[位置]，面向[方向]；B站在[位置]，面向[方向]，两人相距约[X]米。`
+> `【场景首镜站位】（A位于[位置]，面向[方向]；B站在[位置]，面向[方向]，两人相距约[X]米。）`
 
 后续镜头**不再重复站位**，仅在位置发生变化时描述位移（如 `【站位位移】: 林晓彤走到梳妆台旁。`）。
 
@@ -66,16 +66,16 @@ Use this reference only when planning shot beats, selecting camera angle/shot si
 #### 5.4 连续性铁律
 
 - 每个镜头的开场状态必须**严格继承上一镜头的结束状态**。
-- 状态不允许跳跃或重置：角色的位置、朝向、情绪状态、道具位置必须连续。
-- 发生位移时，必须在镜头中展示移动过程。
-- 切换镜头后，仍需重新交代必要的角色位置和朝向。
+- 状态不允许无依据跳跃或重置：角色的位置、朝向、情绪状态、道具位置必须连续。
+- 发生位移时，必须在镜头中展示移动过程，并登记有事实 ID 依据的 `continuity_updates`。
+- 切换镜头后，只在判断画面关系确有需要时交代角色位置和朝向，不重复完整首镜站位。
 - 前后镜头不得互相打架：同一角色的左右方位、视线方向、互动对象和移动方向必须能连续解释。
 
 ---
 
 ## 摄影机语言参考 (四类体系)
 
-以下术语体系必须在撰写「运镜+主画面描述」列时内化使用。选择最契合大卫·芬奇/维伦纽瓦风格的运镜：克制、精准、每一帧都有信息增量。
+以下术语体系只在撰写「运镜+主画面描述」列时内化使用。用户指定风格优先；默认选择克制、精准且具有信息增量的运镜。
 
 ### 一、摄影机视角与高度 (Camera Angles & Height)
 
@@ -163,6 +163,6 @@ Use this reference only when planning shot beats, selecting camera angle/shot si
 #### 运动格式示例
 
 - **运动转换**：`[俯拍 -> 平视, 全景 -> 特写, 伸缩摇臂下降] 摄影机从高空45°俯拍，匀速下降到桌面高度。`
-- **固定状态**：`[平视, 特写, 固定镜头], [过肩镜头]。摄影机越过A的肩膀对准B，B说完台词，焦点快速切换到A的肩膀。`
+- **固定状态**：`[平视, 过肩特写, 固定镜头] 摄影机越过A的肩膀对准B，B说完台词，焦点切换到A的肩膀。`
 - **复合运动**：`[平视, 双人镜头, 横移跟拍] 摄影机横向移动，捕捉两人的相对运动。`
 - **手持**：`[平视, 纯净单人镜头, 手持拍摄晃动] 摄影机正对A的面部。手持微晃。A的下巴剧烈抽搐……`

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image2 7格纯文字版"
+  short_description: "无参考图时生成 Image2 7格2:3/单格16:9提示词"
+  default_prompt: "Use $su-image2-storyboard-grid-text-zh to turn this screenplay text or storyboard table into an Image2 7-panel vertical 2:3 black-and-white storyboard prompt Markdown file where every panel is horizontal 16:9, Panel 1 is the full-width master spatial layout anchor, and vehicle interior shots include seat-window adjacency and camera-occupancy locks."

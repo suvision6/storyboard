@@ -1,4 +1,4 @@
 interface:
-  display_name: "Image2 九宫格分镜"
-  short_description: "生成 Image2 九宫格黑白分镜提示词"
-  default_prompt: "Use $su-image2-storyboard-grid-zh to turn this scene or storyboard table into an Image2 3x3 black-and-white storyboard prompt Markdown file."
+  display_name: "Image2 7格路由"
+  short_description: "按参考图或纯文字分流生成 Image2 7格2:3/单格16:9提示词"
+  default_prompt: "Use $su-image2-storyboard-grid-zh to route this task to the reference-image or text-only Image2 7-panel vertical 2:3 black-and-white storyboard prompt workflow where every panel is horizontal 16:9 and vehicle interior shots include seat-window adjacency and camera-occupancy locks."

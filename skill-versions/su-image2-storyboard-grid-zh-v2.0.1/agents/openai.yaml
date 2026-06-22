@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image2 九宫格路由"
+  short_description: "按参考图或纯文字分流生成 Image2 九宫格提示词"
+  default_prompt: "Use $su-image2-storyboard-grid-zh to route this task to the reference-image or text-only Image2 3x3 black-and-white storyboard prompt workflow."

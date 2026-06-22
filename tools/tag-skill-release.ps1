@@ -13,6 +13,11 @@ $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 Push-Location $RepoRoot
 try {
     $TagName = "$SkillName-v$Version"
+    $SnapshotPath = Join-Path $RepoRoot ("skill-versions\" + $SkillName + "\v" + $Version)
+    if (-not (Test-Path -LiteralPath $SnapshotPath -PathType Container)) {
+        throw "Missing required version snapshot: $SnapshotPath"
+    }
+
     $ExistingTag = git tag --list $TagName
     if ($ExistingTag) {
         throw "Tag already exists: $TagName"

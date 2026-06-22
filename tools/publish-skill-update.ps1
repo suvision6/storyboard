@@ -13,6 +13,8 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $SkillRoot = Join-Path $RepoRoot ("skills\" + $SkillName)
+$SnapshotRoot = Join-Path $RepoRoot ("skill-versions\" + $SkillName)
+$SnapshotPath = Join-Path $SnapshotRoot ("v" + $Version)
 $VersionFile = Join-Path $SkillRoot "VERSION"
 $SkillFile = Join-Path $SkillRoot "SKILL.md"
 
@@ -34,9 +36,6 @@ try {
     }
 
     $SkillText = Get-Content -LiteralPath $SkillFile -Raw -Encoding UTF8
-    if ($SkillText -notmatch "version:\s*`"?$([regex]::Escape($Version))`"?") {
-        throw "SKILL.md front matter does not contain version: `"$Version`"."
-    }
     if ($SkillText -notmatch "skill-version:\s*$([regex]::Escape($Version))") {
         throw "SKILL.md version marker does not contain skill-version: $Version."
     }
@@ -55,11 +54,19 @@ try {
         $Message = "Update $SkillName to v$Version"
     }
 
+    if (Test-Path -LiteralPath $SnapshotPath) {
+        throw "Version snapshot already exists and must not be overwritten: $SnapshotPath"
+    }
+    New-Item -ItemType Directory -Force -Path $SnapshotRoot | Out-Null
+    Copy-Item -LiteralPath $SkillRoot -Destination $SnapshotPath -Recurse
+    Write-Host "Version snapshot created: $SnapshotPath"
+
     $PathsToStage = @(
         ".gitignore",
         "VERSIONING.md",
         "tools",
-        "skills/$SkillName"
+        "skills/$SkillName",
+        "skill-versions/$SkillName/v$Version"
     )
     git add -- $PathsToStage
 

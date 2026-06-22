@@ -1,0 +1,4 @@
+interface:
+  display_name: "SU 分镜 Skill（中文）"
+  short_description: "将剧本转换为专业影视分镜表、视频提示词和故事板站位提示词。"
+  default_prompt: "把下面剧本转换为 8 列专业分镜表，并生成 Prompt 与故事板站位提示词。"

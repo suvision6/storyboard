@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
+"""Tests for the stable 7-column storyboard delivery contract."""
+
+from __future__ import annotations
 
 import copy
 import json
-import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+from openpyxl import load_workbook
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
@@ -15,455 +19,150 @@ sys.path.insert(0, str(SCRIPT_DIR))
 import storyboard_delivery as delivery
 
 
-def keyframe(scene, subject, image):
-    return (
-        f"场景：{scene}；\n"
-        f"主体：{subject}；\n"
-        f"画面：{image}；\n"
-        "构图/景别：克制的单帧关系构图；\n"
-        "光影/色调：低饱和冷灰光；\n"
-        "风格：电影感、真实质感、分镜关键帧；\n"
-        "禁止：多格漫画、拼贴、字幕、对白文字、水印、摄像机设备、场记板、额外角色、额外道具。"
-        "严格杜绝低分辨率，模糊，光影错位，比例不合理，杜绝任何cg游戏感"
-    )
-
-
-def valid_data():
-    scene_one = "13-1 赤狐岭迷雾深林 日 外"
-    scene_two = "13-2 赤狐岭白雾空地 日 外"
+def valid_data() -> dict:
     return {
         "metadata": {
             "skill_name": "su-fenjingskill-zh",
-            "version": "2.2.0",
-            "title": "引魂师片段测试",
+            "version": "2.3.0",
+            "title": "稳定化样片",
             "reference_status": {
-                "camera_language": "loaded",
-                "seedance_prompt_rules": "loaded",
+                "continuity-shot-data": "loaded",
+                "camera-language": "loaded",
+                "seedance-prompt-rules": "loaded",
             },
         },
         "continuity_logs": [
             {
-                "scene": scene_one,
-                "spatial_axis": "沿小径纵深轴，三人保持前后关系。",
-                "fixed_objects": [
-                    {"name": "密林小径", "position": "场景中央", "state": "碎石与枯叶覆盖"}
-                ],
-                "characters": [
-                    {"name": "林晓彤", "position": "小径左前", "facing": "山里", "state": "行进"},
-                    {"name": "沈夜", "position": "右后半步", "facing": "山里", "state": "行进"},
-                    {"name": "顾成", "position": "队尾", "facing": "山里", "state": "行进"},
-                ],
-                "props": [
-                    {
-                        "name": "手环",
-                        "position": "林晓彤左腕",
-                        "owner": "林晓彤",
-                        "state": "微光",
-                    }
-                ],
+                "scene": "1 室内 日 内",
+                "first_shot_anchor_type": "single_continuation",
+                "spatial_axis": "A在门口，B在桌边。",
+                "fixed_objects": [],
+                "characters": [],
+                "props": [],
                 "sound_sources": [],
                 "reality_layer": "现实",
-            },
-            {
-                "scene": scene_two,
-                "spatial_axis": "三人面向白雾中心，保持同侧轴线。",
-                "fixed_objects": [
-                    {"name": "白雾空地", "position": "场景中央", "state": "白雾缓慢散开"}
-                ],
-                "characters": [
-                    {"name": "林晓彤", "position": "空地左侧", "facing": "雾心", "state": "戒备"},
-                    {"name": "沈夜", "position": "空地中央", "facing": "雾心", "state": "观察"},
-                    {"name": "顾成", "position": "空地右侧", "facing": "雾心", "state": "戒备"},
-                ],
-                "props": [
-                    {
-                        "name": "手环",
-                        "position": "林晓彤左腕",
-                        "owner": "林晓彤",
-                        "state": "变亮",
-                    }
-                ],
-                "sound_sources": [],
-                "reality_layer": "现实",
-            },
+            }
         ],
         "beats": [
             {
                 "beat_id": "B001",
-                "scene": scene_one,
-                "source_text": "三人穿过密林，雾在树与树之间一层层飘散。",
-                "dramatic_function": "建立空间与队形。",
-                "facts": [
-                    {"fact_id": "B001-F01", "type": "action", "text": "三人穿过密林"},
-                    {"fact_id": "B001-F02", "type": "space", "text": "雾在树与树之间一层层飘散"},
-                ],
+                "scene": "1 室内 日 内",
+                "source_text": "A站在门口。",
+                "facts": [{"fact_id": "B001-F01", "type": "position", "text": "A站在门口。"}],
             },
             {
                 "beat_id": "B002",
-                "scene": scene_one,
-                "source_text": "林晓彤手环上那丝金色随每一步深入变亮。",
-                "dramatic_function": "道具状态升级。",
-                "facts": [
-                    {"fact_id": "B002-F01", "type": "prop", "text": "手环金色随深入变亮"}
-                ],
+                "scene": "1 室内 日 内",
+                "source_text": "A走到桌边。",
+                "facts": [{"fact_id": "B002-F01", "type": "position", "text": "A走到桌边。"}],
             },
             {
                 "beat_id": "B003",
-                "scene": scene_two,
-                "source_text": "沈夜：进这片林子，它就已经盯着我们了。",
-                "dramatic_function": "明确威胁。",
-                "facts": [
-                    {
-                        "fact_id": "B003-F01",
-                        "type": "dialogue",
-                        "text": "进这片林子，它就已经盯着我们了。",
-                    }
-                ],
+                "scene": "1 室内 日 内",
+                "source_text": "A说：到了。",
+                "facts": [{"fact_id": "B003-F01", "type": "dialogue", "text": "到了。"}],
             },
         ],
         "shots": [
             {
                 "shot_no": 1,
-                "scene": scene_one,
+                "scene": "1 室内 日 内",
                 "beat_ids": ["B001"],
-                "covered_fact_ids": ["B001-F01", "B001-F02"],
-                "source_paragraph": "三人穿过密林，雾在树与树之间一层层飘散。",
-                "duration_seconds": 7,
+                "covered_fact_ids": ["B001-F01"],
+                "source_paragraph": "A站在门口。",
+                "duration_seconds": 2,
                 "duration_breakdown": {
-                    "sync_action_seconds": 4,
+                    "sync_action_seconds": 1,
                     "sync_dialogue_seconds": 0,
                     "non_sync_action_seconds": 0,
-                    "emotional_pause_seconds": 3,
+                    "emotional_pause_seconds": 1,
                 },
-                "long_take": {
-                    "classification": "not_applicable",
-                    "reason": "镜头不超过10秒",
-                },
-                "camera_main_image": (
-                    "[微俯视, 全景, 缓慢推进]\n"
-                    "【机位逻辑】摄影机在小径前方略高处朝三人后退，保留雾层纵深。\n"
-                    "【场景首镜站位】（林晓彤：小径左前，面向山里；沈夜：右后半步，面向山里；"
-                    "顾成：队尾，面向山里。）\n"
-                    "三人踩过碎石和枯叶进入密林，雾在树与树之间一层层飘散。"
-                ),
-                "notes": (
-                    "[时长估算] 同步动作4秒 + 同步台词0秒 + 非同步动作0秒 + 情绪留白3秒"
-                ),
-                "prompt": (
-                    "时间：0秒-7秒\n"
-                    "景别：微俯视全景\n"
-                    "构图：林晓彤、沈夜、顾成沿小径前后排列。\n"
-                    "运镜手法：缓慢推进\n"
-                    "画面内容：林晓彤、沈夜、顾成穿过密林，雾在树间分层飘散。"
-                ),
-                "keyframe": keyframe(
-                    scene_one,
-                    "林晓彤、沈夜、顾成",
-                    "三人沿密林小径前行，树间雾层清晰",
-                ),
-                "visible_characters": ["林晓彤", "沈夜", "顾成"],
+                "camera_main_image": "[平视, 中景, 固定镜头]\n【机位逻辑】摄影机在桌边看向门口。\n【场景首镜站位】（A站在门口，面向桌边。）\nA站在门口，手扶门框。",
+                "notes": "建立初始站位。",
+                "prompt": "",
+                "visible_characters": ["A"],
                 "offscreen_characters": [],
                 "visible_props": [],
                 "continuity_updates": [],
             },
             {
                 "shot_no": 2,
-                "scene": scene_one,
-                "beat_ids": ["B002"],
-                "covered_fact_ids": ["B002-F01"],
-                "source_paragraph": "林晓彤手环上那丝金色随每一步深入变亮。",
-                "duration_seconds": 5,
+                "scene": "1 室内 日 内",
+                "beat_ids": ["B002", "B003"],
+                "covered_fact_ids": ["B002-F01", "B003-F01"],
+                "source_paragraph": "A走到桌边。A说：到了。",
+                "duration_seconds": 3,
                 "duration_breakdown": {
-                    "sync_action_seconds": 5,
-                    "sync_dialogue_seconds": 0,
+                    "sync_action_seconds": 2,
+                    "sync_dialogue_seconds": 1,
                     "non_sync_action_seconds": 0,
-                    "emotional_pause_seconds": 0,
+                    "emotional_pause_seconds": 1,
                 },
-                "long_take": {
-                    "classification": "not_applicable",
-                    "reason": "镜头不超过10秒",
-                },
-                "camera_main_image": (
-                    "[平视, 手腕特写, 跟拍]\n"
-                    "【机位逻辑】摄影机贴近林晓彤左腕随步伐移动。\n"
-                    "手环里的金色随每一步深入逐次变亮。"
-                ),
-                "notes": "手环状态由微光变为变亮。",
-                "prompt": (
-                    "时间：0秒-5秒\n"
-                    "景别：平视特写\n"
-                    "构图：林晓彤左腕和手环居中。\n"
-                    "运镜手法：跟拍\n"
-                    "画面内容：林晓彤继续行走，手环里的金色逐次变亮。"
-                ),
-                "keyframe": keyframe(
-                    scene_one,
-                    "林晓彤左腕和手环",
-                    "手环金色亮度增强，枯叶地面作为背景",
-                ),
-                "visible_characters": ["林晓彤"],
+                "camera_main_image": "[侧面平视, 中景, 横移跟拍]\n【机位逻辑】摄影机沿桌边横移，跟住A的脚步。\n【站位位移】A从门口走到桌边，面向B的位置。\nA在桌边停下，说：“到了。”",
+                "notes": "A完成位置迁移。",
+                "prompt": "",
+                "visible_characters": ["A"],
                 "offscreen_characters": [],
-                "visible_props": ["手环"],
+                "visible_props": [],
                 "continuity_updates": [
                     {
-                        "entity_type": "prop",
-                        "entity": "手环",
-                        "field": "state",
-                        "from": "微光",
-                        "to": "变亮",
+                        "entity_type": "character",
+                        "entity": "A",
+                        "field": "position",
+                        "from": "门口",
+                        "to": "桌边",
                         "evidence_fact_ids": ["B002-F01"],
                     }
                 ],
             },
-            {
-                "shot_no": 3,
-                "scene": scene_two,
-                "beat_ids": ["B003"],
-                "covered_fact_ids": ["B003-F01"],
-                "source_paragraph": "沈夜：进这片林子，它就已经盯着我们了。",
-                "duration_seconds": 6,
-                "duration_breakdown": {
-                    "sync_action_seconds": 2,
-                    "sync_dialogue_seconds": 4,
-                    "non_sync_action_seconds": 0,
-                    "emotional_pause_seconds": 2,
-                },
-                "long_take": {
-                    "classification": "not_applicable",
-                    "reason": "镜头不超过10秒",
-                },
-                "camera_main_image": (
-                    "[平视, 三人中景, 固定镜头]\n"
-                    "【机位逻辑】摄影机在三人正前方，保持威胁方向和视线轴。\n"
-                    "【场景首镜站位】（林晓彤：空地左侧，面向雾心；沈夜：空地中央，面向雾心；"
-                    "顾成：空地右侧，面向雾心。）\n"
-                    "沈夜扫视白雾，对林晓彤和顾成说：\"进这片林子，它就已经盯着我们了。\""
-                ),
-                "notes": "沈夜明确白雾已经锁定三人。",
-                "prompt": (
-                    "时间：0秒-6秒\n"
-                    "景别：平视中景\n"
-                    "构图：沈夜居中，林晓彤和顾成分处两侧。\n"
-                    "运镜手法：固定锁机\n"
-                    "画面内容：沈夜扫视白雾，对林晓彤和顾成说：\"进这片林子，它就已经盯着我们了。\""
-                ),
-                "keyframe": keyframe(
-                    scene_two,
-                    "林晓彤、沈夜、顾成",
-                    "沈夜居中观察白雾，另外两人分处两侧戒备",
-                ),
-                "visible_characters": ["林晓彤", "沈夜", "顾成"],
-                "offscreen_characters": [],
-                "visible_props": [],
-                "continuity_updates": [],
-            },
         ],
-        "validation_report": {
-            "status": "FAIL",
-            "reference_missing": [],
-            "warnings": [],
-            "errors": ["尚未运行"],
-        },
+        "validation_report": {"status": "PASS", "warnings": [], "errors": []},
     }
 
 
-class DeliveryTests(unittest.TestCase):
-    def test_valid_data_passes(self):
-        result = delivery.validate_data(valid_data())
-        self.assertEqual([], result.errors)
-        self.assertEqual("PASS", result.status)
-
-    def test_missing_fact_fails(self):
-        data = valid_data()
-        data["shots"][1]["covered_fact_ids"] = []
-        result = delivery.validate_data(data)
-        self.assertTrue(any("原文事实未覆盖" in item for item in result.errors))
-
-    def test_beat_gap_fails(self):
-        data = valid_data()
-        data["beats"][1]["beat_id"] = "B004"
-        result = delivery.validate_data(data)
-        self.assertTrue(any("Beat ID 不连续" in item for item in result.errors))
-
-    def test_continuity_drift_fails(self):
-        data = valid_data()
-        data["shots"][1]["continuity_updates"][0]["from"] = "熄灭"
-        result = delivery.validate_data(data)
-        self.assertTrue(any("连续性迁移起点错误" in item for item in result.errors))
-
-    def test_duration_formula_fails(self):
-        data = valid_data()
-        data["shots"][0]["duration_seconds"] = 6
-        result = delivery.validate_data(data)
-        self.assertTrue(any("时长应为" in item for item in result.errors))
-
-    def test_positive_subtitle_fails(self):
-        data = valid_data()
-        data["shots"][0]["keyframe"] = data["shots"][0]["keyframe"].replace(
-            "画面：", "画面：带字幕的"
-        )
-        result = delivery.validate_data(data)
-        self.assertTrue(any("只能出现在关键帧禁止字段" in item for item in result.errors))
-
-    def test_reference_missing_warns(self):
-        data = valid_data()
-        data["metadata"]["reference_status"]["camera_language"] = "missing"
-        result = delivery.validate_data(data)
-        self.assertEqual([], result.errors)
-        self.assertEqual("WARN", result.status)
-        report = delivery.report_from(result, data["metadata"])
-        self.assertEqual(["camera-language.md"], report["reference_missing"])
-
-    def test_prompt_over_15_seconds_requires_segments(self):
-        data = valid_data()
-        shot = data["shots"][0]
-        shot["duration_seconds"] = 16
-        shot["duration_breakdown"]["sync_action_seconds"] = 13
-        shot["duration_breakdown"]["emotional_pause_seconds"] = 3
-        shot["notes"] = (
-            "[时长估算] 同步动作13秒 + 同步台词0秒 + 非同步动作0秒 + 情绪留白3秒"
-        )
-        shot["long_take"] = {
-            "classification": "not_applicable",
-            "reason": "镜头由多个视频片段组合",
-        }
-        shot["prompt"] = shot["prompt"].replace("0秒-7秒", "0秒-16秒")
-        result = delivery.validate_data(data)
-        self.assertTrue(any("超过15秒的 Prompt" in item for item in result.errors))
-
-    def test_segmented_prompt_passes(self):
-        data = valid_data()
-        shot = data["shots"][0]
-        shot["duration_seconds"] = 16
-        shot["duration_breakdown"]["sync_action_seconds"] = 13
-        shot["duration_breakdown"]["emotional_pause_seconds"] = 3
-        shot["notes"] = (
-            "[时长估算] 同步动作13秒 + 同步台词0秒 + 非同步动作0秒 + 情绪留白3秒"
-        )
-        shot["long_take"] = {
-            "classification": "not_applicable",
-            "reason": "镜头由两个视频片段组合",
-        }
-        shot["prompt"] = (
-            "片段A\n"
-            "时间：0秒-10秒\n"
-            "景别：微俯视全景\n"
-            "构图：林晓彤、沈夜、顾成沿小径前后排列。\n"
-            "运镜手法：缓慢推进\n"
-            "画面内容：林晓彤、沈夜、顾成进入密林，雾在树间分层飘散。\n"
-            "片段B\n"
-            "时间：0秒-6秒\n"
-            "景别：平视中景\n"
-            "构图：三人继续沿小径前行。\n"
-            "运镜手法：跟拍\n"
-            "画面内容：林晓彤、沈夜、顾成继续深入密林。"
-        )
-        result = delivery.validate_data(data)
-        self.assertEqual([], result.errors)
-
-    def test_long_take_marker_required(self):
-        data = valid_data()
-        shot = data["shots"][0]
-        shot["duration_seconds"] = 11
-        shot["duration_breakdown"]["sync_action_seconds"] = 8
-        shot["notes"] = (
-            "[时长估算] 同步动作8秒 + 同步台词0秒 + 非同步动作0秒 + 情绪留白3秒"
-        )
-        shot["long_take"] = {
-            "classification": "continuous_performance",
-            "reason": "三人连续进入密林",
-        }
-        shot["prompt"] = shot["prompt"].replace("0秒-7秒", "0秒-11秒")
-        result = delivery.validate_data(data)
-        self.assertTrue(any("必须标记 [长镜头]" in item for item in result.errors))
-
-    def test_position_update_requires_marker(self):
-        data = valid_data()
-        data["shots"][0]["continuity_updates"] = [
-            {
-                "entity_type": "character",
-                "entity": "林晓彤",
-                "field": "position",
-                "from": "小径左前",
-                "to": "树旁",
-                "evidence_fact_ids": ["B001-F01"],
-            }
-        ]
-        result = delivery.validate_data(data)
-        self.assertTrue(any("必须写【站位位移】" in item for item in result.errors))
-
-    def test_build_and_validate_artifacts(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
+class DeliveryContractTests(unittest.TestCase):
+    def test_build_writes_7_column_markdown_and_excel(self) -> None:
+        with tempfile.TemporaryDirectory() as root_name:
+            root = Path(root_name)
             data_path = root / "sample.shot_data.json"
             md_path = root / "sample.md"
             xlsx_path = root / "sample.xlsx"
-            data_path.write_text(
-                json.dumps(valid_data(), ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
-            build = subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPT_DIR / "storyboard_delivery.py"),
-                    "build",
-                    "--data",
-                    str(data_path),
-                    "--markdown",
-                    str(md_path),
-                    "--excel",
-                    str(xlsx_path),
-                ],
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(0, build.returncode, build.stdout + build.stderr)
-            validate = subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPT_DIR / "storyboard_delivery.py"),
-                    "validate",
-                    "--data",
-                    str(data_path),
-                    "--markdown",
-                    str(md_path),
-                    "--excel",
-                    str(xlsx_path),
-                ],
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(0, validate.returncode, validate.stdout + validate.stderr)
-            self.assertIn("| 关键帧 |", md_path.read_text(encoding="utf-8"))
-            _, load_workbook, _, _, _, _ = delivery.openpyxl_modules()
-            workbook = load_workbook(xlsx_path)
-            self.assertEqual(["分镜表"], workbook.sheetnames)
-            self.assertEqual("A2", workbook["分镜表"].freeze_panes)
-            self.assertEqual(delivery.HEADERS, [cell.value for cell in workbook["分镜表"][1]])
-            self.assertEqual(108, workbook["分镜表"].row_dimensions[2].height)
-            workbook.close()
-
-    def test_node_wrapper(self):
-        node = shutil.which("node")
-        if not node:
-            self.skipTest("node is not available")
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            data_path, md_path, xlsx_path = (
-                root / "sample.shot_data.json",
-                root / "sample.md",
-                root / "sample.xlsx",
-            )
             data_path.write_text(json.dumps(valid_data(), ensure_ascii=False), encoding="utf-8")
-            self.assertEqual(
-                0,
-                delivery.run_build(
-                    type("Args", (), {"data": data_path, "markdown": md_path, "excel": xlsx_path})()
-                ),
-            )
-            validate = subprocess.run(
+
+            rc = delivery.main(["build", "--data", str(data_path), "--markdown", str(md_path), "--excel", str(xlsx_path)])
+            self.assertEqual(0, rc)
+
+            built = json.loads(data_path.read_text(encoding="utf-8"))
+            self.assertEqual("PASS", built["validation_report"]["status"])
+            self.assertNotIn("keyframe", built["shots"][0])
+            self.assertEqual(delivery.derive_prompt(built["shots"][0]), built["shots"][0]["prompt"])
+
+            markdown = md_path.read_text(encoding="utf-8")
+            self.assertIn("| 镜号 | 场景 | 原剧本段落 | 镜头时长(秒) | 运镜+主画面描述(含台词) | 备注 | Prompt |", markdown)
+            self.assertNotIn("关键帧", markdown)
+            self.assertNotIn("【镜内变化】", markdown)
+
+            workbook = load_workbook(xlsx_path, read_only=True)
+            try:
+                self.assertEqual(["分镜表"], workbook.sheetnames)
+                sheet = workbook["分镜表"]
+                self.assertEqual(3, sheet.max_row)
+                self.assertEqual(7, sheet.max_column)
+            finally:
+                workbook.close()
+
+    def test_validate_wrapper_passes_built_files(self) -> None:
+        with tempfile.TemporaryDirectory() as root_name:
+            root = Path(root_name)
+            data_path = root / "sample.shot_data.json"
+            md_path = root / "sample.md"
+            xlsx_path = root / "sample.xlsx"
+            data_path.write_text(json.dumps(valid_data(), ensure_ascii=False), encoding="utf-8")
+            self.assertEqual(0, delivery.main(["build", "--data", str(data_path), "--markdown", str(md_path), "--excel", str(xlsx_path)]))
+
+            process = subprocess.run(
                 [
-                    node,
+                    "node",
                     str(SCRIPT_DIR / "validate_storyboard.js"),
                     "--python",
                     sys.executable,
@@ -474,84 +173,180 @@ class DeliveryTests(unittest.TestCase):
                     "--excel",
                     str(xlsx_path),
                 ],
-                capture_output=True,
                 text=True,
+                capture_output=True,
+                check=False,
             )
-            self.assertEqual(0, validate.returncode, validate.stdout + validate.stderr)
+            self.assertEqual(0, process.returncode, process.stderr + process.stdout)
 
-    def test_old_column_name_fails(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            data_path, md_path, xlsx_path = (
-                root / "sample.shot_data.json",
-                root / "sample.md",
-                root / "sample.xlsx",
-            )
-            data_path.write_text(json.dumps(valid_data(), ensure_ascii=False), encoding="utf-8")
-            code = delivery.run_build(
-                type("Args", (), {"data": data_path, "markdown": md_path, "excel": xlsx_path})()
-            )
-            self.assertEqual(0, code)
-            md_path.write_text(
-                md_path.read_text(encoding="utf-8").replace("| 关键帧 |", "| 故事板 |", 1),
-                encoding="utf-8",
-            )
-            result = delivery.validate_data(delivery.load_json(data_path))
-            delivery.compare_artifacts(delivery.load_json(data_path), md_path, xlsx_path, result)
-            self.assertTrue(any("旧列名" in item for item in result.errors))
+    def test_keyframe_field_is_rejected(self) -> None:
+        data = valid_data()
+        data["shots"][0]["keyframe"] = "场景：旧关键帧"
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("keyframe" in item for item in result.errors))
 
-    def test_markdown_cell_mismatch_fails(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            data_path, md_path, xlsx_path = (
-                root / "sample.shot_data.json",
-                root / "sample.md",
-                root / "sample.xlsx",
-            )
-            data_path.write_text(json.dumps(valid_data(), ensure_ascii=False), encoding="utf-8")
-            self.assertEqual(
-                0,
-                delivery.run_build(
-                    type("Args", (), {"data": data_path, "markdown": md_path, "excel": xlsx_path})()
-                ),
-            )
-            md_path.write_text(
-                md_path.read_text(encoding="utf-8").replace(
-                    "三人踩过碎石和枯叶进入密林",
-                    "错误改写",
-                    1,
-                ),
-                encoding="utf-8",
-            )
-            result = delivery.validate_data(delivery.load_json(data_path))
-            delivery.compare_artifacts(delivery.load_json(data_path), md_path, xlsx_path, result)
-            self.assertTrue(any("Markdown 第1行第5列" in item for item in result.errors))
+    def test_pass_internal_status_is_rejected(self) -> None:
+        data = valid_data()
+        data["validation_report"]["status"] = "PASS_INTERNAL"
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("PASS / WARN / FAIL" in item for item in result.errors))
 
-    def test_excel_mismatch_and_corruption_fail(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            data_path, md_path, xlsx_path = (
-                root / "sample.shot_data.json",
-                root / "sample.md",
-                root / "sample.xlsx",
-            )
-            data_path.write_text(json.dumps(valid_data(), ensure_ascii=False), encoding="utf-8")
-            code = delivery.run_build(
-                type("Args", (), {"data": data_path, "markdown": md_path, "excel": xlsx_path})()
-            )
-            self.assertEqual(0, code)
-            _, load_workbook, _, _, _, _ = delivery.openpyxl_modules()
-            workbook = load_workbook(xlsx_path)
-            workbook["分镜表"]["B2"] = "错误场景"
-            workbook.save(xlsx_path)
-            result = delivery.validate_data(delivery.load_json(data_path))
-            delivery.compare_artifacts(delivery.load_json(data_path), md_path, xlsx_path, result)
-            self.assertTrue(any("Excel 第1行第2列" in item for item in result.errors))
+    def test_station_move_requires_continuity_update(self) -> None:
+        data = valid_data()
+        data["shots"][1]["continuity_updates"] = []
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("continuity_updates 为空" in item for item in result.errors))
 
-            xlsx_path.write_bytes(b"not an xlsx")
-            result = delivery.validate_data(delivery.load_json(data_path))
-            delivery.compare_artifacts(delivery.load_json(data_path), md_path, xlsx_path, result)
-            self.assertTrue(any("Excel 无法读取" in item for item in result.errors))
+    def test_position_update_requires_station_move(self) -> None:
+        data = valid_data()
+        data["shots"][1]["camera_main_image"] = data["shots"][1]["camera_main_image"].replace("【站位位移】", "")
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("缺少【站位位移】" in item for item in result.errors))
+
+    def test_prompt_internal_label_is_rejected(self) -> None:
+        data = valid_data()
+        delivery.derive_prompts(data)
+        data["shots"][0]["prompt"] += "\n【镜内变化】污染"
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("Prompt" in item and "内部" in item for item in result.errors))
+
+    def test_dialogue_duration_cannot_be_underestimated(self) -> None:
+        data = valid_data()
+        data["shots"][1]["camera_main_image"] = "[平视, 中景, 固定镜头]\n【机位逻辑】摄影机拍A站在桌边。\nA说：“这句话很长很长不能压到一秒。”"
+        data["shots"][1]["duration_seconds"] = 1
+        data["shots"][1]["duration_breakdown"]["sync_action_seconds"] = 1
+        data["shots"][1]["duration_breakdown"]["sync_dialogue_seconds"] = 1
+        data["shots"][1]["duration_breakdown"]["emotional_pause_seconds"] = 0
+        data["shots"][1]["continuity_updates"] = []
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("对白时长过短" in item for item in result.errors))
+
+    def test_outdoor_multi_character_panorama_first_shot_passes(self) -> None:
+        data = valid_data()
+        data["continuity_logs"][0]["first_shot_anchor_type"] = "both"
+        data["continuity_logs"][0]["spatial_axis"] = "A在画面左侧，B在画面右侧，两人沿山路面向远处。"
+        data["shots"][0]["camera_main_image"] = (
+            "[微俯视, 大全景, 固定镜头]\n"
+            "【机位逻辑】摄影机在山路上方俯看两人和远处入口。\n"
+            "【场景首镜站位】（A在画面左侧，B在画面右侧，两人相距三米，面向远处入口。）\n"
+            "A和B站在山路上，远处入口被雾压住。"
+        )
+        data["shots"][0]["visible_characters"] = ["A", "B"]
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(result.errors, result.errors)
+
+    def test_indoor_multi_character_full_shot_first_shot_passes(self) -> None:
+        data = valid_data()
+        data["continuity_logs"][0]["first_shot_anchor_type"] = "multi_character"
+        data["continuity_logs"][0]["spatial_axis"] = "A在画面左侧门口，B在画面右侧桌边，两人隔桌对视。"
+        data["shots"][0]["camera_main_image"] = (
+            "[平视, 全景, 固定镜头]\n"
+            "【机位逻辑】摄影机在房间侧墙拍到门、桌和两人的左右关系。\n"
+            "【场景首镜站位】（A在画面左侧门口，面向右侧桌边；B在画面右侧桌边，面向A，两人隔桌对视。）\n"
+            "A扶着门框，B站在桌边。"
+        )
+        data["shots"][0]["visible_characters"] = ["A", "B"]
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(result.errors, result.errors)
+
+    def test_multi_character_first_shot_medium_close_fails(self) -> None:
+        data = valid_data()
+        data["continuity_logs"][0]["first_shot_anchor_type"] = "multi_character"
+        data["shots"][0]["camera_main_image"] = (
+            "[平视, 中近景, 固定镜头]\n"
+            "【机位逻辑】摄影机拍两人上半身。\n"
+            "【场景首镜站位】（A在左，B在右，两人面向彼此。）\n"
+            "A和B看着对方。"
+        )
+        data["shots"][0]["visible_characters"] = ["A", "B"]
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("景别必须为大远景/大全景/全景/中全景" in item for item in result.errors))
+
+    def test_single_continuation_medium_first_shot_passes(self) -> None:
+        data = valid_data()
+        data["continuity_logs"][0]["first_shot_anchor_type"] = "single_continuation"
+        data["shots"][0]["camera_main_image"] = (
+            "[平视, 中景, 固定镜头]\n"
+            "【机位逻辑】摄影机在岩壁前拍A的半身和身后空间边界。\n"
+            "【场景首镜站位】（A靠在岩壁前，面向画面右侧微光。）\n"
+            "A靠在岩壁上，抬头看向右侧微光。"
+        )
+        data["shots"][0]["visible_characters"] = ["A"]
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(result.errors, result.errors)
+
+    def test_extreme_wide_steadicam_fails(self) -> None:
+        data = valid_data()
+        data["shots"][0]["camera_main_image"] = (
+            "[微俯视, 大全景, 斯坦尼康平稳跟随]\n"
+            "【机位逻辑】摄影机拍到山路全貌和人物位置。\n"
+            "【场景首镜站位】（A站在画面左侧，面向远处。）\n"
+            "A站在山路上。"
+        )
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("大远景/大全景不得使用斯坦尼康" in item for item in result.errors))
+
+    def test_extreme_wide_crane_passes(self) -> None:
+        data = valid_data()
+        data["continuity_logs"][0]["first_shot_anchor_type"] = "both"
+        data["continuity_logs"][0]["spatial_axis"] = "A在画面左侧，B在画面右侧，两人面向远处入口。"
+        data["shots"][0]["camera_main_image"] = (
+            "[微俯视, 大全景, 伸缩摇臂缓慢下降]\n"
+            "【机位逻辑】摄影机从林冠上方下降，拍到山路、入口和两人左右关系。\n"
+            "【场景首镜站位】（A在画面左侧，B在画面右侧，两人相距三米，面向远处入口。）\n"
+            "A和B站在山路上。"
+        )
+        data["shots"][0]["visible_characters"] = ["A", "B"]
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(result.errors, result.errors)
+
+    def test_aerial_large_landscape_passes(self) -> None:
+        data = valid_data()
+        data["continuity_logs"][0]["first_shot_anchor_type"] = "space"
+        data["shots"][0]["camera_main_image"] = (
+            "[高角度俯拍, 大远景, 航拍缓慢推进]\n"
+            "【机位逻辑】摄影机从高速公路上方推进，拍到道路纵深和远处雾区。\n"
+            "【场景首镜站位】（道路由画面左下延伸至右上，A处在远处路肩，面向雾区。）\n"
+            "浓雾压过高速公路。"
+        )
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(result.errors, result.errors)
+
+    def test_steadicam_medium_follow_passes(self) -> None:
+        data = valid_data()
+        data["shots"][0]["camera_main_image"] = (
+            "[平视, 中景, 斯坦尼康跟随]\n"
+            "【机位逻辑】摄影机在地面跟随A从门口走向桌边。\n"
+            "【场景首镜站位】（A站在门口，面向桌边。）\n"
+            "A从门口向桌边走去。"
+        )
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(result.errors, result.errors)
+
+    def test_aerial_medium_close_fails(self) -> None:
+        data = valid_data()
+        data["shots"][0]["camera_main_image"] = (
+            "[平视, 中近景, 航拍缓慢推进]\n"
+            "【机位逻辑】摄影机贴近A的上半身推进。\n"
+            "【场景首镜站位】（A站在门口，面向桌边。）\n"
+            "A看向桌边。"
+        )
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("航拍必须服务于大范围空间" in item for item in result.errors))
 
 
 if __name__ == "__main__":

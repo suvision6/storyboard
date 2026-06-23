@@ -1,4 +1,4 @@
-interface:
-  display_name: "SU 分镜 Skill（中文）"
-  short_description: "将剧本转换为含连续性校验、视频 Prompt 和关键帧的专业分镜。"
-  default_prompt: "使用 $su-fenjingskill-zh 把下面剧本转换为经过完整性与连续性校验的 8 列专业分镜表。"
+skill:
+  name: su-fenjingskill-zh
+  short_description: "将剧本转换为稳定 7 列专业分镜表，含连续性校验和精简视频 Prompt。"
+  default_prompt: "使用 $su-fenjingskill-zh 把下面剧本转换为经过完整性与连续性校验的 7 列专业分镜表；主表不生成关键帧列。"

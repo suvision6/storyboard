@@ -24,7 +24,7 @@ except Exception:  # pragma: no cover - reported at runtime.
     PatternFill = None
     get_column_letter = None
 
-VERSION = "2.3.2"
+VERSION = "2.3.3"
 SHEET_NAME = "分镜表"
 HEADERS = [
     "镜号",
@@ -59,6 +59,54 @@ PANORAMIC_SHOT_SIZE_KEYWORDS = ("大远景", "大全景", "中全景", "全景")
 PANORAMIC_REQUIRED_ANCHORS = {"space", "multi_character", "both"}
 AERIAL_ALLOWED_SHOT_SIZE_KEYWORDS = ("大远景", "大全景", "全景")
 AERIAL_ALLOWED_ANGLE_KEYWORDS = ("俯拍", "高角度", "正俯拍", "微俯视")
+WIDE_SHOT_SIZE_KEYWORDS = ("大远景", "大全景", "远景", "全景", "中全景")
+CLOSE_SHOT_SIZE_KEYWORDS = ("中近景", "近景", "中特写", "特写", "微距特写")
+SHOT_SIZE_RANKS = [
+    (0, ("大远景", "大全景", "远景")),
+    (1, ("全景", "中全景")),
+    (2, ("中景", "七分身", "半身")),
+    (3, ("中近景", "近景", "中特写")),
+    (4, ("微距特写", "特写")),
+]
+STATIC_OR_SOFT_MOVEMENT_KEYWORDS = (
+    "固定",
+    "轻微",
+    "缓慢",
+    "微晃",
+    "呼吸式",
+    "下摇",
+    "纵摇",
+    "横摇",
+)
+SPAN_MOVEMENT_KEYWORDS = (
+    "光学变焦",
+    "快速推拉",
+    "急推",
+    "急拉",
+    "推轨推进",
+    "推轨拉出",
+    "缓慢推进",
+    "缓慢拉出",
+    "伸缩摇臂",
+)
+INCOMPLETE_DIALOGUE_ENDINGS = ("，", "、", "：", "；", ",", ":", ";")
+EXPRESSION_ONLY_KEYWORDS = (
+    "笑",
+    "苦笑",
+    "嘴角",
+    "眼神",
+    "抬眼",
+    "闭眼",
+    "呼吸",
+    "停顿",
+    "沉默",
+    "表情",
+    "眉",
+    "瞳孔",
+    "下颌",
+    "嘴唇",
+)
+NEW_FACT_TYPES_FOR_CUT = {"position", "prop", "space", "sound", "reality"}
 INTERNAL_LABELS = [
     "【镜内变化】",
     "【人物关系】",
@@ -212,6 +260,81 @@ def parse_triad(camera: str) -> tuple[str, str, str]:
 def is_panoramic_shot_size(shot_size: str) -> bool:
     value = clean_text(shot_size)
     return any(keyword in value for keyword in PANORAMIC_SHOT_SIZE_KEYWORDS)
+
+
+def shot_size_rank(shot_size: str) -> int | None:
+    value = clean_text(shot_size)
+    for rank, keywords in SHOT_SIZE_RANKS:
+        if any(keyword in value for keyword in keywords):
+            return rank
+    return None
+
+
+def shot_size_has_span(shot_size: str) -> bool:
+    value = clean_text(shot_size)
+    return has_any_keyword(value, WIDE_SHOT_SIZE_KEYWORDS) and has_any_keyword(value, CLOSE_SHOT_SIZE_KEYWORDS)
+
+
+def angle_family(angle: str) -> str:
+    value = clean_text(angle)
+    if "主观" in value:
+        return "subjective"
+    if "过肩" in value:
+        return "over_shoulder"
+    if "仰" in value:
+        return "low"
+    if "俯" in value or "高角度" in value:
+        return "high"
+    if "侧" in value:
+        return "side"
+    return "level"
+
+
+def is_static_or_soft_movement(movement: str) -> bool:
+    return has_any_keyword(movement, STATIC_OR_SOFT_MOVEMENT_KEYWORDS)
+
+
+def has_continuity_position_change(shot: dict[str, Any]) -> bool:
+    if "【站位位移】" in clean_text(shot.get("camera_main_image")):
+        return True
+    for update in as_list(shot.get("continuity_updates")):
+        if isinstance(update, dict) and update.get("field") in {"position", "facing"}:
+            return True
+    return False
+
+
+def normalized_visible_characters(shot: dict[str, Any]) -> tuple[str, ...]:
+    return tuple(sorted(str(item) for item in as_list(shot.get("visible_characters")) if str(item)))
+
+
+def fact_types_for_shot(shot: dict[str, Any], fact_types: dict[str, str]) -> set[str]:
+    return {fact_types[fact_id] for fact_id in map(str, as_list(shot.get("covered_fact_ids"))) if fact_id in fact_types}
+
+
+def quoted_dialogue_text(shot: dict[str, Any]) -> str:
+    camera = clean_text(shot.get("camera_main_image"))
+    quoted = "".join(re.findall(r"[“\"]([^”\"]+)[”\"]", camera))
+    if quoted:
+        return quoted.strip()
+    source = one_line(shot.get("source_paragraph"))
+    match = re.search(r"[：:](.+)$", source)
+    return match.group(1).strip() if match else ""
+
+
+def dialogue_speaker(shot: dict[str, Any]) -> str:
+    source = one_line(shot.get("source_paragraph"))
+    match = re.match(r"([^：:]{1,20})[：:]", source)
+    return match.group(1).strip() if match else ""
+
+
+def is_expression_only_response(shot: dict[str, Any], fact_types: dict[str, str]) -> bool:
+    types = fact_types_for_shot(shot, fact_types)
+    if types & NEW_FACT_TYPES_FOR_CUT:
+        return False
+    if not (types & {"action", "emotion", "character"}):
+        return False
+    text = one_line(shot.get("source_paragraph")) + " " + one_line(shot.get("camera_main_image"))
+    return has_any_keyword(text, EXPRESSION_ONLY_KEYWORDS)
 
 
 def has_any_keyword(value: str, keywords: tuple[str, ...]) -> bool:
@@ -399,9 +522,10 @@ def validate_continuity_logs(data: dict[str, Any], result: ValidationResult) -> 
     return logs_by_scene
 
 
-def collect_facts(data: dict[str, Any], result: ValidationResult) -> tuple[dict[str, str], set[str]]:
+def collect_facts(data: dict[str, Any], result: ValidationResult) -> tuple[dict[str, str], dict[str, str], set[str]]:
     beat_to_facts: dict[str, set[str]] = {}
     fact_to_beat: dict[str, str] = {}
+    fact_types: dict[str, str] = {}
     seen_beats: set[str] = set()
     for beat in as_list(data.get("beats")):
         if not isinstance(beat, dict):
@@ -427,8 +551,9 @@ def collect_facts(data: dict[str, Any], result: ValidationResult) -> tuple[dict[
             if fact.get("type") not in FACT_TYPES:
                 result.error(f"{fact_id} 事实类型不合法：{fact.get('type')}")
             fact_to_beat[fact_id] = beat_id
+            fact_types[fact_id] = str(fact.get("type", ""))
             beat_to_facts[beat_id].add(fact_id)
-    return fact_to_beat, set(fact_to_beat)
+    return fact_to_beat, fact_types, set(fact_to_beat)
 
 
 def validate_first_scene_shot(shot: dict[str, Any], scene_log: dict[str, Any], result: ValidationResult) -> None:
@@ -460,10 +585,69 @@ def validate_first_scene_shot(shot: dict[str, Any], scene_log: dict[str, Any], r
             result.error(f"镜号{shot_no} 多人场景首镜站位必须写清左右关系、朝向或主要对视轴线。")
 
 
+def validate_adjacent_shot_design(
+    shots: list[Any],
+    fact_types: dict[str, str],
+    result: ValidationResult,
+) -> None:
+    previous: dict[str, Any] | None = None
+    for item in shots:
+        if not isinstance(item, dict):
+            continue
+        if previous is not None and item.get("scene") == previous.get("scene"):
+            validate_adjacent_pair(previous, item, fact_types, result)
+        previous = item
+
+
+def validate_adjacent_pair(
+    prev: dict[str, Any],
+    curr: dict[str, Any],
+    fact_types: dict[str, str],
+    result: ValidationResult,
+) -> None:
+    prev_no = prev.get("shot_no")
+    curr_no = curr.get("shot_no")
+    prev_angle, prev_size, prev_movement = parse_triad(clean_text(prev.get("camera_main_image")))
+    curr_angle, curr_size, curr_movement = parse_triad(clean_text(curr.get("camera_main_image")))
+    prev_rank = shot_size_rank(prev_size)
+    curr_rank = shot_size_rank(curr_size)
+    same_characters = normalized_visible_characters(prev) == normalized_visible_characters(curr)
+    if same_characters and normalized_visible_characters(prev):
+        no_position_change = not has_continuity_position_change(prev) and not has_continuity_position_change(curr)
+        close_size = prev_rank is not None and curr_rank is not None and abs(prev_rank - curr_rank) <= 1
+        same_angle = angle_family(prev_angle) == angle_family(curr_angle)
+        soft_movement = is_static_or_soft_movement(prev_movement) and is_static_or_soft_movement(curr_movement)
+        if no_position_change and close_size and same_angle and soft_movement:
+            result.error(
+                f"镜号{prev_no}-{curr_no} 同场相邻镜头主体、视角、景别和运动过近，"
+                "且无站位/朝向迁移；必须合并或提供明确画面信息增量。"
+            )
+
+    prev_dialogue = quoted_dialogue_text(prev)
+    curr_dialogue = quoted_dialogue_text(curr)
+    if prev_dialogue and curr_dialogue and prev_dialogue.endswith(INCOMPLETE_DIALOGUE_ENDINGS):
+        prev_speaker = dialogue_speaker(prev)
+        curr_speaker = dialogue_speaker(curr)
+        if not prev_speaker or not curr_speaker or prev_speaker == curr_speaker:
+            result.error(
+                f"镜号{prev_no}-{curr_no} 将同一说话人的未完成台词切成相邻两镜；"
+                "应合并为一镜，用表演或机位运动承接。"
+            )
+
+    prev_types = fact_types_for_shot(prev, fact_types)
+    if "dialogue" in prev_types and is_expression_only_response(curr, fact_types):
+        if same_characters or not normalized_visible_characters(curr):
+            result.error(
+                f"镜号{prev_no}-{curr_no} 是对白后同一人物短表情反应，且没有新的空间、道具、声音或位置事实；"
+                "应合并进同一镜。"
+            )
+
+
 def validate_rows(
     data: dict[str, Any],
     result: ValidationResult,
     fact_to_beat: dict[str, str],
+    fact_types: dict[str, str],
     all_fact_ids: set[str],
     continuity_logs: dict[str, dict[str, Any]],
 ) -> None:
@@ -527,6 +711,7 @@ def validate_rows(
         result.error("存在未覆盖事实 ID：" + ", ".join(missing[:20]))
     if any("【站位位移】" in clean_text(shot.get("camera_main_image")) for shot in shots if isinstance(shot, dict)) and not has_update:
         result.error("分镜出现站位位移，但没有任何 continuity_updates。")
+    validate_adjacent_shot_design(shots, fact_types, result)
 
 
 def validate_duration(shot: dict[str, Any], result: ValidationResult) -> None:
@@ -579,7 +764,7 @@ def validate_camera(shot: dict[str, Any], result: ValidationResult) -> None:
     if not re.fullmatch(r"\[[^,\]]+,\s*[^,\]]+,\s*[^\]]+\]", lines[0]):
         result.error(f"镜号{shot_no} 运镜首行必须是三要素：[视角/高度, 景别/特殊视角, 运镜方式]。")
     angle, shot_size, movement = parse_triad(camera)
-    validate_camera_movement_compatibility(shot_no, angle, shot_size, movement, result)
+    validate_camera_movement_compatibility(shot_no, angle, shot_size, movement, result, clean_text(shot.get("notes")))
     if not lines[1].startswith("【机位逻辑】"):
         result.error(f"镜号{shot_no} 运镜第二行必须以【机位逻辑】开头。")
     for word in FORBIDDEN_VISUAL_WORDS:
@@ -600,6 +785,7 @@ def validate_camera_movement_compatibility(
     shot_size: str,
     movement: str,
     result: ValidationResult,
+    notes: str = "",
 ) -> None:
     if "斯坦尼康" in clean_text(movement) and has_any_keyword(shot_size, ("大远景", "大全景")):
         result.error(f"镜号{shot_no} 大远景/大全景不得使用斯坦尼康；应改用摇臂、伸缩摇臂或航拍。")
@@ -608,6 +794,16 @@ def validate_camera_movement_compatibility(
             result.error(f"镜号{shot_no} 航拍必须服务于大范围空间，景别应为大远景/大全景/全景。")
         if not has_any_keyword(angle, AERIAL_ALLOWED_ANGLE_KEYWORDS):
             result.error(f"镜号{shot_no} 航拍必须匹配俯拍、高角度、正俯拍或微俯视。")
+    size_text = f"{angle} {shot_size}"
+    if shot_size_has_span(size_text):
+        has_span_movement = has_any_keyword(movement, SPAN_MOVEMENT_KEYWORDS)
+        has_span_note = "[景别跨度]" in clean_text(notes)
+        if not has_span_movement or not has_span_note:
+            result.error(
+                f"镜号{shot_no} 景别同时包含远景类和近景/特写类，"
+                "必须使用光学变焦、快速推拉、急推/急拉、推轨推进/拉出或伸缩摇臂等跨度运镜，"
+                "并在备注写 [景别跨度] 理由。"
+            )
 
 
 def validate_prompt(shot: dict[str, Any], result: ValidationResult) -> None:
@@ -653,8 +849,8 @@ def validate_data(data: dict[str, Any], *, strict_status: bool) -> ValidationRes
     result = ValidationResult()
     validate_metadata(data, result, strict_status=strict_status)
     continuity_logs = validate_continuity_logs(data, result)
-    fact_to_beat, all_fact_ids = collect_facts(data, result)
-    validate_rows(data, result, fact_to_beat, all_fact_ids, continuity_logs)
+    fact_to_beat, fact_types, all_fact_ids = collect_facts(data, result)
+    validate_rows(data, result, fact_to_beat, fact_types, all_fact_ids, continuity_logs)
     return result
 
 

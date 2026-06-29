@@ -1,22 +1,23 @@
 ﻿---
 name: su-image7
-description: Image2 7 格/宫格黑白分镜提示词独立技能。用于把参考图、资产图、俯视图、站位图、尾帧、剧本文字、文字版分镜、Markdown/Excel 表格、局部镜号或表格截图转写为 Image2/gpt-image-2 可复制提示词。默认生成 7-panel vertical 2:3 storyboard sheet：第 1 格为顶部全宽 horizontal 16:9 主平面锚定格，下方 6 格为 2-column by 3-row grid，7 个宫格全部为 horizontal 16:9 storyboard frames。必须锁定空间、固定物、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口、对视轴线、反打肩位和银幕左右关系。不得修改 su-fenjingskill-zh 主表、Prompt 列、Storyboard 列、Excel 或校验脚本。
+description: Image2 7 格/宫格黑白分镜提示词独立技能。用于把参考图、资产图、俯视图、站位图、尾帧、剧本文字、文字版分镜、Markdown/Excel 表格、局部镜号或表格截图转写为 Image2/gpt-image-2 可复制提示词。默认生成 7-panel vertical 9:16 storyboard sheet，推荐尺寸 1536 x 2736：第 1 格为顶部全宽 horizontal 16:9 主平面锚定格，下方 6 格为 2-column by 3-row grid，7 个宫格全部为 horizontal 16:9 storyboard frames；Image2 只生成无字原图，中文页眉和每格三要素由后处理脚本添加。必须锁定空间、固定物、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口、对视轴线、反打肩位和银幕左右关系。不得修改 su-fenjingskill-zh 主表、Prompt 列、Storyboard 列、Excel 或校验脚本。
 ---
 
 # Image2 7 格分镜提示词独立技能
 
 ## 版本
 
-<!-- skill-version: 1.0.0 -->
+<!-- skill-version: 1.2.0 -->
 
-`su-image7` 是 7 格 2:3 竖版跨栏锚定分镜提示词独立入口。不要再转用 `su-image2-storyboard-grid-zh`；本技能内部完成参考图版/纯文字版分流。
+`su-image7` 是 7 格 9:16 竖版跨栏锚定分镜提示词独立入口，默认无字生图尺寸为 `1536 x 2736`。不要再转用 `su-image2-storyboard-grid-zh`；本技能内部完成参考图版/纯文字版分流。
 
 ## 核心边界
 
 - 不修改 `su-fenjingskill-zh`，不回写主表，不改变镜号、场景、原剧本段落、镜头时长、运镜主画面、备注、Prompt 列或 Storyboard 列。
 - 默认只输出 Markdown 提示词文件；只有用户明确要求“生图、批量生成、按 Markdown 生成图片、输出 ZIP”时才进入生图流程。
 - 最终 `Image2 可复制提示词` 使用英文主导；中文分析表只服务于空间、连续性和取舍锁定。
-- 画内禁止任何文字；Markdown 中的 `Panel 1` 到 `Panel 7` 只供阅读和复制，不是画面内容。
+- Image2 prompt block must be image-only and text-free；生图层禁止任何画内文字，最终提示词必须保留 `no text inside the image`，不得包含页眉、镜号、三要素、annotation layer、after generation labels 或任何让模型画字的指令。
+- 标注交付层只允许后处理脚本添加中文文字：生图完成后，由脚本读取 `shot_data.json`，在图片外部排版层添加页眉和每格 `C序号｜视角｜景别｜运镜` 标签；这些文字不得由 Image2 直接生成、猜写、翻译或改写。
 - 如果读取 `su-fenjingskill-zh` 交付物，优先用主表前 6 列、`shot_data.json`、`continuity_logs`、`continuity_updates`、`visible_characters`、`visible_props`；Prompt 列只能作为镜头摘要辅助，不能作为主输入或唯一输入。
 
 ## 输入分流
@@ -43,11 +44,39 @@ description: Image2 7 格/宫格黑白分镜提示词独立技能。用于把参
 
 ## 7 格版式规则
 
-- 整体画布必须为 `vertical 2:3 canvas`。
+- 整体画布必须为 `vertical 9:16 canvas`，推荐无字原图尺寸固定为 `1536 x 2736`。
 - 每个宫格都必须是 `horizontal 16:9 storyboard frame`；整体画布不能改成横向 16:9。
 - Panel 1 必须是顶部全宽 horizontal 16:9 主平面锚定格，约占整张画布 35%-38% 高度。
 - Panels 2-7 位于 Panel 1 下方，固定排列为 `2-column by 3-row grid`。
 - Panels 2-7 只能从 Panel 1 裁切、推进、反打、俯拍或侧拍，不得重新布景。
+- su-image7 不再使用 `vertical 2:3 canvas`、`1024 x 1536` 或 `1536 x 2304` 作为默认最终画布；这些比例只允许用于旧产物回看，不得作为新提示词默认值。
+
+### Strict panel geometry blueprint
+
+英文最终提示词必须携带这一组几何硬约束，避免后续宫格变成方格、竖窄格或不规则漫画拼贴：
+
+- `Strict panel geometry blueprint, mandatory before drawing:`
+- `Treat the final canvas as a clean vertical 9:16 layout, equivalent to 1536 x 2736 layout units.`
+- `Draw exactly seven separate straight rectangular panel frames with visible gutters.`
+- `Panel 1: one full-width horizontal 16:9 rectangle across the top, occupying the full usable panel width.`
+- `Panels 2-7: six identical lower horizontal 16:9 rectangles arranged below Panel 1 in two equal columns and three equal rows.`
+- `Panels 2-7 must all have the same width, the same height, the same 16:9 aspect ratio, and aligned edges.`
+- `Do not let any lower panel become square, vertical, tall, narrow, compressed, stretched, trapezoid, diagonal, rounded, or irregular.`
+- `Keep gutters and margins as empty separating space. If a close-up needs more room, use empty background or negative space inside that panel; never change the panel shape or aspect ratio.`
+- `Do not create a manga page, comic page, dynamic collage, masonry grid, mixed panel sizes, tilted frames, perspective-distorted frames, overlapping panels, or a poster composition.`
+- `The content inside a panel may crop or zoom, but the panel frame itself must remain a flat horizontal 16:9 rectangle.`
+
+## 标注交付层（annotation layer）
+
+标注交付层是生图后的外部排版步骤，不属于 Image2 生图内容，严禁写入 `Image2 可复制提示词` 代码块。需要分发给同事、导演或制片审阅时，默认同时规划一版标注图：
+
+- 原始生图保持无字；不得在 Image2 提示词里要求生成中文、镜号、场次、字幕、箭头文字或说明文字。
+- 标注版在整张图最左上方页眉写中文：`场次/场景｜镜头编号范围`，例如 `13-1 赤狐岭迷雾深林 日 外｜镜头001-010`。
+- 标注版在每个单独宫格下方的外部标签区写中文：`C序号｜视角｜景别｜运镜`，例如 `C1｜微俯视｜大全景｜伸缩摇臂缓慢下降`。
+- `视角｜景别｜运镜` 必须只从 `shot_data.json` 的 `camera_main_image` 开头方括号读取；不得翻译成英文，不得根据画面猜写，不得用模型自行概括。
+- 多镜头合并 Panel 默认使用来源范围首镜头三要素；若用户明确指定主镜头，则以用户指定主镜头为准。
+- 标签区必须位于宫格外部排版层，不得压缩、遮挡、裁切或覆盖任何 16:9 宫格内容。
+- 若生成 PDF、图册、PPT 或网页索引，优先使用标注版；若要继续二次生图或修图，保留无字原图。
 
 ## 第 1 格跨栏主平面锚定
 
@@ -125,20 +154,27 @@ description: Image2 7 格/宫格黑白分镜提示词独立技能。用于把参
 
 必须包含硬词：
 
-- `Generate one vertical 2:3 canvas containing a clean 7-panel storyboard sheet.`
+- `Generate one vertical 9:16 canvas, equivalent to 1536 x 2736, containing a clean 7-panel storyboard sheet.`
 - `Each of the 7 panels must be a horizontal 16:9 storyboard frame.`
 - `Panel 1 is a full-width master spatial layout anchor across the top.`
 - `Panels 2-7 are arranged below Panel 1 in a clean 2-column by 3-row grid.`
 - `All Panels 2-7 must be derived from the same Panel 1 layout.`
 - `Do not make the overall canvas horizontal 16:9; only the individual panels are horizontal 16:9 frames.`
+- `Do not generate any text, labels, captions, panel numbers, scene headers, shot numbers, subtitles, arrows, or watermarks inside the image.`
+- `Strict panel geometry blueprint, mandatory before drawing:`
+- `Treat the final canvas as a clean vertical 9:16 layout, equivalent to 1536 x 2736 layout units.`
+- `Panels 2-7: six identical lower horizontal 16:9 rectangles arranged below Panel 1 in two equal columns and three equal rows.`
+- `Do not let any lower panel become square, vertical, tall, narrow, compressed, stretched, trapezoid, diagonal, rounded, or irregular.`
 - `rough black-and-white pencil storyboard sketch`
 - `low-detail faces`
 - `light gray shading only`
 
-否定约束固定包含：`No photorealism, no film still look, no realistic skin texture, no cinematic lighting, no polished illustration, no manga page, no poster composition, no color, no text inside the image, no labels, no subtitles, no arrows, no watermarks.`
+否定约束固定包含：`No photorealism, no film still look, no realistic skin texture, no cinematic lighting, no polished illustration, no manga page, no comic page layout, no dynamic collage, no masonry grid, no poster composition, no color, no text inside the image, no labels, no subtitles, no arrows, no watermarks, no square panels, no vertical panels, no tall panels, no narrow panels, no mixed-size lower panels.`
 
 ## 生图与验收
 
-只有用户明确要求生图或 ZIP 时才生图。每段提示词生成一张独立 7 格 2:3 PNG，PNG 放入 `pages/`，与 `prompts.md` 打包 ZIP。
+只有用户明确要求生图或 ZIP 时才生图。每段提示词生成一张独立 7 格 9:16 无字 PNG，推荐尺寸 `1536 x 2736`，PNG 放入 `pages/`，与 `prompts.md` 打包 ZIP。
 
-目检顺序固定为：整体 2:3、7 格版式、每格 16:9、Panel 1 跨栏、无画内文字、固定物几何继承、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口、反打轴线、对象可见性。任一失败，收紧提示词并重生一次；最多连续重生两次。
+原始生图目检顺序固定为：整体 9:16、推荐尺寸 `1536 x 2736`、7 格版式、每格 16:9、Panel 1 跨栏、Panels 2-7 同宽同高且均为 16:9、无方格/竖窄格/混合尺寸宫格、无画内文字、固定物几何继承、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口、反打轴线、对象可见性。任一失败，收紧提示词并重生一次；最多连续重生两次。
+
+标注版验收顺序固定为：原始 16:9 宫格比例未改变、中文页眉 `场次/场景｜镜头编号范围` 存在、每个宫格下方 `C序号｜视角｜景别｜运镜` 三要素存在、三要素逐项来自 `shot_data.json`、文字清晰、标签区不遮挡宫格、不压缩宫格、不改变宫格边框。

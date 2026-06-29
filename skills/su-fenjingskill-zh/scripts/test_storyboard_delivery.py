@@ -348,6 +348,133 @@ class DeliveryContractTests(unittest.TestCase):
         result = delivery.validate_data(data, strict_status=True)
         self.assertTrue(any("航拍必须服务于大范围空间" in item for item in result.errors))
 
+    def test_adjacent_similar_shots_without_position_change_fail(self) -> None:
+        data = valid_data()
+        data["beats"] = data["beats"][:2]
+        data["beats"][1]["source_text"] = "A抬眼看向桌边。"
+        data["beats"][1]["facts"] = [{"fact_id": "B002-F01", "type": "action", "text": "A抬眼看向桌边。"}]
+        data["shots"][1].update(
+            {
+                "beat_ids": ["B002"],
+                "covered_fact_ids": ["B002-F01"],
+                "source_paragraph": "A抬眼看向桌边。",
+                "duration_seconds": 2,
+                "duration_breakdown": {
+                    "sync_action_seconds": 1,
+                    "sync_dialogue_seconds": 0,
+                    "non_sync_action_seconds": 0,
+                    "emotional_pause_seconds": 1,
+                },
+                "camera_main_image": "[平视, 中近景, 固定镜头]\n【机位逻辑】摄影机继续拍A的上半身。\nA抬眼看向桌边。",
+                "notes": "同一主体反应。",
+                "continuity_updates": [],
+            }
+        )
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("主体、视角、景别和运动过近" in item for item in result.errors))
+
+    def test_incomplete_dialogue_split_across_adjacent_shots_fails(self) -> None:
+        data = valid_data()
+        data["beats"] = data["beats"][:2]
+        data["beats"][0]["source_text"] = "A：你听我说，"
+        data["beats"][0]["facts"] = [{"fact_id": "B001-F01", "type": "dialogue", "text": "你听我说，"}]
+        data["beats"][1]["source_text"] = "A：我不是故意的。"
+        data["beats"][1]["facts"] = [{"fact_id": "B002-F01", "type": "dialogue", "text": "我不是故意的。"}]
+        data["shots"][0]["source_paragraph"] = "A：你听我说，"
+        data["shots"][0]["camera_main_image"] = (
+            "[平视, 中景, 固定镜头]\n"
+            "【机位逻辑】摄影机在桌边拍A。\n"
+            "【场景首镜站位】（A站在门口，面向桌边。）\n"
+            "A看向桌边，说：“你听我说，”"
+        )
+        data["shots"][1].update(
+            {
+                "beat_ids": ["B002"],
+                "covered_fact_ids": ["B002-F01"],
+                "source_paragraph": "A：我不是故意的。",
+                "duration_seconds": 3,
+                "duration_breakdown": {
+                    "sync_action_seconds": 1,
+                    "sync_dialogue_seconds": 2,
+                    "non_sync_action_seconds": 0,
+                    "emotional_pause_seconds": 1,
+                },
+                "camera_main_image": "[平视, 中近景, 固定镜头]\n【机位逻辑】摄影机切近A的脸。\nA继续说：“我不是故意的。”",
+                "notes": "同一说话人续句。",
+                "continuity_updates": [],
+            }
+        )
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("未完成台词" in item for item in result.errors))
+
+    def test_dialogue_followed_by_short_expression_reaction_fails(self) -> None:
+        data = valid_data()
+        data["beats"] = data["beats"][:2]
+        data["beats"][0]["source_text"] = "A：够了。"
+        data["beats"][0]["facts"] = [{"fact_id": "B001-F01", "type": "dialogue", "text": "够了。"}]
+        data["beats"][1]["source_text"] = "A笑了一下。"
+        data["beats"][1]["facts"] = [{"fact_id": "B002-F01", "type": "emotion", "text": "A笑了一下。"}]
+        data["shots"][0]["source_paragraph"] = "A：够了。"
+        data["shots"][0]["camera_main_image"] = (
+            "[平视, 中景, 固定镜头]\n"
+            "【机位逻辑】摄影机在桌边拍A。\n"
+            "【场景首镜站位】（A站在门口，面向桌边。）\n"
+            "A看向桌边，说：“够了。”"
+        )
+        data["shots"][1].update(
+            {
+                "beat_ids": ["B002"],
+                "covered_fact_ids": ["B002-F01"],
+                "source_paragraph": "A笑了一下。",
+                "duration_seconds": 2,
+                "duration_breakdown": {
+                    "sync_action_seconds": 1,
+                    "sync_dialogue_seconds": 0,
+                    "non_sync_action_seconds": 0,
+                    "emotional_pause_seconds": 1,
+                },
+                "camera_main_image": "[平视, 中近景, 固定镜头]\n【机位逻辑】摄影机切近A的嘴角。\nA嘴角轻轻抬起，笑了一下。",
+                "notes": "短表情反应。",
+                "continuity_updates": [],
+            }
+        )
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("短表情反应" in item for item in result.errors))
+
+    def test_wide_to_close_shot_size_without_span_movement_fails(self) -> None:
+        data = valid_data()
+        data["shots"][0]["camera_main_image"] = (
+            "[平视, 全景->特写, 固定镜头]\n"
+            "【机位逻辑】摄影机同时描述房间全貌和A的眼睛。\n"
+            "【场景首镜站位】（A站在门口，面向桌边。）\n"
+            "A站在门口，眼神收紧。"
+        )
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("[景别跨度]" in item for item in result.errors))
+
+    def test_wide_to_close_shot_size_with_span_movement_passes(self) -> None:
+        data = valid_data()
+        data["shots"][0]["camera_main_image"] = (
+            "[平视, 全景->特写, 光学变焦]\n"
+            "【机位逻辑】摄影机从房间全貌压到A的眼睛。\n"
+            "【场景首镜站位】（A站在门口，面向桌边。）\n"
+            "A站在门口，眼神收紧。"
+        )
+        data["shots"][0]["notes"] = "[景别跨度] 从房间关系压入A的关键反应。"
+        data["shots"][1]["camera_main_image"] = (
+            "[侧面平视, 中景, 横移跟拍]\n"
+            "【机位逻辑】摄影机沿桌边横移，跟住A的脚步。\n"
+            "【站位位移】A从门口走到桌边，面向B的位置。\n"
+            "A在桌边停下，说：“到了。”"
+        )
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(result.errors, result.errors)
+
 
 if __name__ == "__main__":
     unittest.main()

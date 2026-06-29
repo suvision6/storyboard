@@ -78,6 +78,68 @@ description: Image2 7 格/宫格黑白分镜提示词独立技能。用于把参
 - 标签区必须位于宫格外部排版层，不得压缩、遮挡、裁切或覆盖任何 16:9 宫格内容。
 - 若生成 PDF、图册、PPT 或网页索引，优先使用标注版；若要继续二次生图或修图，保留无字原图。
 
+## page-map 产出要求
+
+后处理脚本不得猜测宫格与镜头关系。只要进入生图或标注交付，就必须同时产出 `page-map.json`。
+
+- `page-map.json` 是标注后处理脚本的强制输入文件。
+- 结构说明见 `skills/su-image-common/references/page-map-schema.md`。
+- 每一页必须声明：
+  - `page_no`
+  - `layout`
+  - `source`
+  - `panels`
+- 7 格页的 `panels` 必须完整覆盖 `1..7`，不得缺格。
+- 每个 `panel_no` 必须明确对应 `shot_nos`；如果一个 Panel 合并多个镜头，数组首镜头就是默认三要素标签来源。
+- 如果实际生图宫格几何与默认版式推导不一致，必须在 `page-map.json` 里显式写 `box`，禁止让脚本靠目测猜位置。
+- 没有 `page-map.json`，不得声称可以安全生成标注版。
+
+最小示例：
+
+```json
+{
+  "pages": [
+    {
+      "page_no": 1,
+      "layout": "7",
+      "source": "page-001.png",
+      "panels": [
+        { "panel_no": 1, "shot_nos": [1] },
+        { "panel_no": 2, "shot_nos": [2, 3] },
+        { "panel_no": 3, "shot_nos": [4] },
+        { "panel_no": 4, "shot_nos": [5] },
+        { "panel_no": 5, "shot_nos": [6] },
+        { "panel_no": 6, "shot_nos": [7] },
+        { "panel_no": 7, "shot_nos": [8] }
+      ]
+    }
+  ]
+}
+```
+
+## 后处理脚本调用
+
+后处理脚本固定使用：
+
+`skills/su-image-common/scripts/annotate_storyboard_pages.py`
+
+推荐调用方式：
+
+```bash
+<bundled-python> skills/su-image-common/scripts/annotate_storyboard_pages.py \
+  --data <片名>.shot_data.json \
+  --page-map page-map.json \
+  --pages pages \
+  --output annotated-pages
+```
+
+执行约束：
+
+- 必须使用 `shot_data.json` 和 `page-map.json`，不得省略其一。
+- `annotated-pages/` 中输出的是中文标注版 PNG。
+- 脚本同时输出 `annotated-pages/manifest.json`，用于核对页眉和每格标签来源。
+- 如果脚本报出 `camera_main_image` 三要素缺失、镜头号不存在、panel 覆盖不完整或布局不支持，必须视为交付失败，先修数据再重跑。
+
 ## 第 1 格跨栏主平面锚定
 
 - 所有内景、外景、院落、走廊、房间、道路、车厢等连续 7 格，Panel 1 必须优先建立主平面锚定。
@@ -173,7 +235,14 @@ description: Image2 7 格/宫格黑白分镜提示词独立技能。用于把参
 
 ## 生图与验收
 
-只有用户明确要求生图或 ZIP 时才生图。每段提示词生成一张独立 7 格 9:16 无字 PNG，推荐尺寸 `1536 x 2736`，PNG 放入 `pages/`，与 `prompts.md` 打包 ZIP。
+只有用户明确要求生图或 ZIP 时才生图。每段提示词生成一张独立 7 格 9:16 无字 PNG，推荐尺寸 `1536 x 2736`，PNG 放入 `pages/`，与 `prompts.md`、`page-map.json` 一起作为后处理输入。
+
+若需要标注交付版，必须在无字原图生成完成后执行后处理脚本，并产出：
+
+- `pages/*.png`
+- `page-map.json`
+- `annotated-pages/*.png`
+- `annotated-pages/manifest.json`
 
 原始生图目检顺序固定为：整体 9:16、推荐尺寸 `1536 x 2736`、7 格版式、每格 16:9、Panel 1 跨栏、Panels 2-7 同宽同高且均为 16:9、无方格/竖窄格/混合尺寸宫格、无画内文字、固定物几何继承、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口、反打轴线、对象可见性。任一失败，收紧提示词并重生一次；最多连续重生两次。
 

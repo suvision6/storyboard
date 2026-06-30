@@ -120,6 +120,17 @@ def valid_data() -> dict:
     }
 
 
+def valid_data_234() -> dict:
+    data = valid_data()
+    data["metadata"]["version"] = "2.3.4"
+    for shot in data["shots"]:
+        shot["shot_type"] = "master" if shot["shot_no"] == 1 else "action"
+        shot["split_reason"] = ["spatial_anchor"] if shot["shot_no"] == 1 else ["performance_continuity", "continuity_migration"]
+        shot["insert_priority"] = "none"
+        shot["long_take_support"] = []
+    return data
+
+
 class DeliveryContractTests(unittest.TestCase):
     def test_build_writes_7_column_markdown_and_excel(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
@@ -474,6 +485,93 @@ class DeliveryContractTests(unittest.TestCase):
         delivery.derive_prompts(data)
         result = delivery.validate_data(data, strict_status=True)
         self.assertFalse(result.errors, result.errors)
+
+    def test_233_data_does_not_require_hybrid_fields(self) -> None:
+        data = valid_data()
+        data["metadata"]["version"] = "2.3.3"
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(any("shot_type" in item or "split_reason" in item or "insert_priority" in item or "long_take_support" in item for item in result.errors), result.errors)
+
+    def test_234_build_keeps_7_column_outputs_with_hybrid_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as root_name:
+            root = Path(root_name)
+            data_path = root / "sample.shot_data.json"
+            md_path = root / "sample.md"
+            xlsx_path = root / "sample.xlsx"
+            data_path.write_text(json.dumps(valid_data_234(), ensure_ascii=False), encoding="utf-8")
+
+            rc = delivery.main(["build", "--data", str(data_path), "--markdown", str(md_path), "--excel", str(xlsx_path)])
+            self.assertEqual(0, rc)
+            built = json.loads(data_path.read_text(encoding="utf-8"))
+            self.assertIn("hybrid_audit", built["validation_report"])
+            self.assertEqual("master", built["shots"][0]["shot_type"])
+
+            workbook = load_workbook(xlsx_path, read_only=True)
+            try:
+                sheet = workbook[delivery.SHEET_NAME]
+                self.assertEqual(7, sheet.max_column)
+            finally:
+                workbook.close()
+
+    def test_234_missing_shot_type_fails(self) -> None:
+        data = valid_data_234()
+        del data["shots"][0]["shot_type"]
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("shot_type" in item for item in result.errors))
+
+    def test_234_invalid_split_reason_fails(self) -> None:
+        data = valid_data_234()
+        data["shots"][0]["split_reason"] = ["wrong_reason"]
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("split_reason" in item and "wrong_reason" in item for item in result.errors))
+
+    def test_234_long_take_requires_two_supports(self) -> None:
+        data = valid_data_234()
+        data["shots"][1]["duration_seconds"] = 11
+        data["shots"][1]["duration_breakdown"] = {
+            "sync_action_seconds": 11,
+            "sync_dialogue_seconds": 0,
+            "non_sync_action_seconds": 0,
+            "emotional_pause_seconds": 0,
+        }
+        data["shots"][1]["camera_main_image"] = (
+            "[侧面平视, 中景, 横移跟拍]\n"
+            "【机位逻辑】摄影机沿桌边横移，跟住A的脚步。\n"
+            "【站位位移】A从门口走到桌边，面向B的位置。\n"
+            "A在桌边停下，抬手示意。"
+        )
+        data["shots"][1]["notes"] = "[时长估算] 同步动作11秒 + 同步对白0秒 + 非同步动作0秒 + 情绪停顿0秒。[长镜头复核] 动作长镜承载位移。"
+        data["shots"][1]["long_take"] = {"classification": "action_long_take", "reason": "动作长镜"}
+        data["shots"][1]["long_take_support"] = ["character_blocking"]
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertTrue(any("long_take_support" in item for item in result.errors))
+
+        data["shots"][1]["long_take_support"] = ["character_blocking", "spatial_progression"]
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(result.errors, result.errors)
+
+    def test_234_long_insert_duration_warns_only(self) -> None:
+        data = valid_data_234()
+        data["shots"][0]["shot_type"] = "insert"
+        data["shots"][0]["split_reason"] = ["prop_state_change"]
+        data["shots"][0]["insert_priority"] = "recommended"
+        data["shots"][0]["duration_seconds"] = 6
+        data["shots"][0]["duration_breakdown"] = {
+            "sync_action_seconds": 5,
+            "sync_dialogue_seconds": 0,
+            "non_sync_action_seconds": 0,
+            "emotional_pause_seconds": 1,
+        }
+        data["shots"][0]["notes"] = "[时长估算] 同步动作5秒 + 同步对白0秒 + 非同步动作0秒 + 情绪停顿1秒。插镜偏长，仅用于警告测试。"
+        delivery.derive_prompts(data)
+        result = delivery.validate_data(data, strict_status=True)
+        self.assertFalse(result.errors, result.errors)
+        self.assertTrue(any("2-5" in item for item in result.warnings))
 
 
 if __name__ == "__main__":

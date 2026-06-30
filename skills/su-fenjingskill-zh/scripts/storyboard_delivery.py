@@ -24,7 +24,7 @@ except Exception:  # pragma: no cover - reported at runtime.
     PatternFill = None
     get_column_letter = None
 
-VERSION = "2.3.3"
+VERSION = "2.3.4"
 SHEET_NAME = "分镜表"
 HEADERS = [
     "镜号",
@@ -53,6 +53,40 @@ FACT_TYPES = {
     "sound",
     "reality",
 }
+SHOT_TYPES = {
+    "master",
+    "action",
+    "dialogue",
+    "reaction",
+    "insert",
+    "transition",
+    "vfx_anchor",
+    "safety",
+}
+SPLIT_REASONS = {
+    "spatial_anchor",
+    "performance_continuity",
+    "new_information",
+    "prop_state_change",
+    "new_vfx_state",
+    "new_sound_source",
+    "reality_layer_shift",
+    "causal_reveal",
+    "emotional_turn",
+    "continuity_migration",
+}
+INSERT_PRIORITIES = {"none", "recommended", "must_have"}
+LONG_TAKE_SUPPORTS = {
+    "shot_size_change",
+    "character_blocking",
+    "foreground_background_change",
+    "sound_source_change",
+    "vfx_state_change",
+    "emotional_turn",
+    "spatial_progression",
+}
+INSERT_LIKE_TYPES = {"insert", "reaction", "vfx_anchor", "safety"}
+HYBRID_VERSION = "2.3.4"
 VALID_STATUSES = {"PASS", "WARN", "FAIL"}
 ANCHOR_TYPES = {"space", "multi_character", "both", "single_continuation", "subjective"}
 PANORAMIC_SHOT_SIZE_KEYWORDS = ("大远景", "大全景", "中全景", "全景")
@@ -342,6 +376,18 @@ def has_any_keyword(value: str, keywords: tuple[str, ...]) -> bool:
     return any(keyword in text for keyword in keywords)
 
 
+def metadata_version(data: dict[str, Any]) -> str:
+    return clean_text(as_dict(data.get("metadata")).get("version"))
+
+
+def requires_hybrid_fields(data: dict[str, Any]) -> bool:
+    return metadata_version(data) == HYBRID_VERSION
+
+
+def normalized_list(value: Any) -> list[str]:
+    return [str(item) for item in as_list(value) if str(item)]
+
+
 def strip_internal_prefix(line: str) -> str:
     value = line.strip()
     for label in INTERNAL_LABELS:
@@ -444,6 +490,11 @@ def update_validation_report(data: dict[str, Any], result: ValidationResult) -> 
     seen_scenes: set[str] = set()
     total_duration = 0.0
     over_6 = over_8 = over_10 = 0
+    short_3 = 0
+    long_6_or_more = 0
+    shot_type_counts: dict[str, int] = {}
+    insert_priority_counts: dict[str, int] = {}
+    long_take_audit: list[dict[str, Any]] = []
     for shot in shots:
         scene = str(shot.get("scene", "")).split(" ")[0] or str(shot.get("scene", ""))
         scene_counts[scene] = scene_counts.get(scene, 0) + 1
@@ -472,6 +523,38 @@ def update_validation_report(data: dict[str, Any], result: ValidationResult) -> 
         over_6 += int(duration > 6)
         over_8 += int(duration > 8)
         over_10 += int(duration > 10)
+        short_3 += int(duration <= 3)
+        long_6_or_more += int(duration >= 6)
+        shot_type = clean_text(shot.get("shot_type")) or "missing"
+        insert_priority = clean_text(shot.get("insert_priority")) or "missing"
+        shot_type_counts[shot_type] = shot_type_counts.get(shot_type, 0) + 1
+        insert_priority_counts[insert_priority] = insert_priority_counts.get(insert_priority, 0) + 1
+        if duration > 10:
+            long_take_audit.append(
+                {
+                    "shot_no": shot.get("shot_no"),
+                    "duration_seconds": int(duration) if duration.is_integer() else duration,
+                    "long_take_support": normalized_list(shot.get("long_take_support")),
+                }
+            )
+    cut_per_minute = round(((len(shots) - 1) / total_duration) * 60, 2) if total_duration > 0 and len(shots) > 1 else 0
+    short_ratio = round(short_3 / len(shots), 4) if shots else 0
+    long_ratio = round(long_6_or_more / len(shots), 4) if shots else 0
+    hybrid_audit = {
+        "short_shots_le_3_seconds": short_3,
+        "short_shot_ratio": short_ratio,
+        "long_shots_ge_6_seconds": long_6_or_more,
+        "long_shot_ratio": long_ratio,
+        "cut_per_minute": cut_per_minute,
+        "shot_type_counts": shot_type_counts,
+        "insert_priority_counts": insert_priority_counts,
+        "long_take_audit": long_take_audit,
+        "soft_targets": {
+            "short_shot_ratio": "0.10-0.18 for full-episode references only",
+            "long_shot_ratio": "0.40-0.55 for full-episode references only",
+            "cut_per_minute": "10.5-12.5 for full-episode references only",
+        },
+    }
     data["validation_report"] = {
         "status": result.status,
         "warnings": result.warnings,
@@ -485,6 +568,7 @@ def update_validation_report(data: dict[str, Any], result: ValidationResult) -> 
         "shots_over_10_seconds": over_10,
         "column_contract": "7-column stable storyboard table; keyframe column removed",
         "first_shot_anchor_audit": first_shot_anchor_audit,
+        "hybrid_audit": hybrid_audit,
     }
 
 
@@ -643,6 +727,40 @@ def validate_adjacent_pair(
             )
 
 
+def validate_hybrid_fields(shot: dict[str, Any], result: ValidationResult, *, required: bool) -> None:
+    shot_no = shot.get("shot_no")
+    duration = float(shot.get("duration_seconds") or 0)
+    if not required:
+        return
+    shot_type = clean_text(shot.get("shot_type"))
+    if not shot_type:
+        result.error(f"镜号{shot_no} 2.3.4 必须填写 shot_type。")
+    elif shot_type not in SHOT_TYPES:
+        result.error(f"镜号{shot_no} shot_type 不合法：{shot_type}")
+    split_reasons = normalized_list(shot.get("split_reason"))
+    if not split_reasons:
+        result.error(f"镜号{shot_no} 2.3.4 必须填写 split_reason。")
+    for reason in split_reasons:
+        if reason not in SPLIT_REASONS:
+            result.error(f"镜号{shot_no} split_reason 不合法：{reason}")
+    insert_priority = clean_text(shot.get("insert_priority"))
+    if not insert_priority:
+        result.error(f"镜号{shot_no} 2.3.4 必须填写 insert_priority。")
+    elif insert_priority not in INSERT_PRIORITIES:
+        result.error(f"镜号{shot_no} insert_priority 不合法：{insert_priority}")
+    supports = normalized_list(shot.get("long_take_support"))
+    for support in supports:
+        if support not in LONG_TAKE_SUPPORTS:
+            result.error(f"镜号{shot_no} long_take_support 不合法：{support}")
+    if duration > 10 and len(supports) < 2:
+        result.error(f"镜号{shot_no} 超过10秒，2.3.4 要求至少填写两项 long_take_support。")
+    if shot_type in INSERT_LIKE_TYPES and duration > 5:
+        result.warn(f"镜号{shot_no} 是 {shot_type}，插镜建议 2-5 秒；当前 {duration:g} 秒，请确认是否承担镜内推进。")
+    causal_reasons = {"new_vfx_state", "causal_reveal", "prop_state_change"}
+    if causal_reasons & set(split_reasons) and shot_type not in {"insert", "vfx_anchor", "transition", "action"}:
+        result.warn(f"镜号{shot_no} 承担真相/道具/VFX 因果落点，但 shot_type 为 {shot_type}，建议复核插镜意识。")
+
+
 def validate_rows(
     data: dict[str, Any],
     result: ValidationResult,
@@ -660,6 +778,7 @@ def validate_rows(
     scenes = set(continuity_logs)
     seen_scenes: set[str] = set()
     has_update = False
+    hybrid_required = requires_hybrid_fields(data)
     for shot in shots:
         if not isinstance(shot, dict):
             result.error("shots 中每一项必须是对象。")
@@ -698,6 +817,7 @@ def validate_rows(
         validate_duration(shot, result)
         validate_camera(shot, result)
         validate_prompt(shot, result)
+        validate_hybrid_fields(shot, result, required=hybrid_required)
         updates = as_list(shot.get("continuity_updates"))
         if updates:
             has_update = True

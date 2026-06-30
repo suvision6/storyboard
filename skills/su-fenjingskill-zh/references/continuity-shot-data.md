@@ -69,7 +69,7 @@
 {
   "metadata": {
     "skill_name": "su-fenjingskill-zh",
-    "version": "2.3.0",
+    "version": "2.3.4",
     "title": "片名或集名",
     "reference_status": {
       "continuity-shot-data": "loaded | missing",
@@ -140,7 +140,11 @@ Shot 结构：
   "visible_characters": [],
   "offscreen_characters": [],
   "visible_props": [],
-  "continuity_updates": []
+  "continuity_updates": [],
+  "shot_type": "master | action | dialogue | reaction | insert | transition | vfx_anchor | safety",
+  "split_reason": ["spatial_anchor | performance_continuity | new_information | prop_state_change | new_vfx_state | new_sound_source | reality_layer_shift | causal_reveal | emotional_turn | continuity_migration"],
+  "insert_priority": "none | recommended | must_have",
+  "long_take_support": []
 }
 ```
 
@@ -158,6 +162,8 @@ Shot 结构：
 ## 交付映射
 
 交付脚本按以下顺序生成 7 列：
+
+2.3.4 新增审计字段只存在于 JSON，Markdown/Excel 仍按下列 7 列导出。
 
 1. `shot_no`
 2. `scene`

@@ -1,0 +1,240 @@
+﻿---
+name: su-image9
+description: Image2 9 宫格/3x3 黑白分镜提示词独立技能。用于把参考图、资产图、俯视图、站位图、尾帧、剧本文字、文字版分镜、Markdown/Excel 表格、局部镜号或表格截图转写为 Image2/gpt-image-2 可复制提示词。默认生成 wide horizontal 16:9 canvas containing a clean 3x3 storyboard grid，9 个宫格全部为 horizontal 16:9 storyboard frames。保留 9 格容量，同时吸收 7 格版的第 1 格主平面锚定、固定物屏幕投影、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口、画内文字禁令和生图验收规则。不得修改 su-fenjingskill-zh 主表、Prompt 列、Storyboard 列、Excel 或校验脚本。
+---
+
+# Image2 9 宫格分镜提示词独立技能
+
+## 版本
+
+<!-- skill-version: 1.3.0 -->
+
+`su-image9` 是 3x3 九宫格黑白分镜提示词独立入口。它保留九宫格横版容量，但补入 `su-image7` 中更强的空间、车辆、反打、无字生图和后处理中文标注规则。不要转用 `su-image2-storyboard-grid-zh`。
+
+1.3.0 强化语义规划层：九宫格在格式正确之前，必须先通过空间连续、Panel 1 主锚定、逐格去重、具体轴线、逐 Panel 车辆坐标和语义失败校验。格式硬词通过不等于可生图；任何语义闸门失败都必须停止，不得输出正式 `Image2 可复制提示词`。
+
+## 核心边界
+
+- 不修改 `su-fenjingskill-zh`，不回写主表，不改变镜号、场景、原剧本段落、镜头时长、运镜主画面、备注、Prompt 列或 Storyboard 列。
+- 默认只输出 Markdown 提示词文件；只有用户明确要求“生图、批量生成、按 Markdown 生成图片、输出 ZIP”时才进入生图流程。
+- 最终 `Image2 可复制提示词` 使用英文主导；中文分析表只服务于空间、连续性和取舍锁定。
+- Image2 prompt block must be image-only and text-free；生图层禁止任何画内文字，最终提示词必须保留 `no text inside the image`，不得包含页眉、镜号、三要素、annotation layer、after generation labels、`C序号` 或任何让模型画字的指令。
+- 标注交付层只允许后处理脚本添加中文文字：生图完成后，由脚本读取 `shot_data.json`，在图片外部排版层添加页眉和每格 `C序号｜视角｜景别｜运镜` 标签；这些文字不得由 Image2 直接生成、猜写、翻译、混写或改写。
+- 三要素标注必须先按 `shot_data.json` 的计划值生成，再对照生成图的实际构图、景别和原分镜剧情核对；若构图不符，必须标记为“构图不符，需重生/人工确认”，不得用假标签迁就错误画面。
+- 如果读取 `su-fenjingskill-zh` 交付物，优先用主表前 6 列、`shot_data.json`、`continuity_logs`、`continuity_updates`、`visible_characters`、`visible_props`；Prompt 列只能作为镜头摘要辅助，不能作为主输入或唯一输入。
+
+## 输入分流
+
+### 参考图输入
+
+当输入包含场景参考图、角色图、道具图、俯视图、平面图、站位图、机位图、尾帧、上一镜输出图、图片编号、资产路径或图片附件时，按参考图流程执行。
+
+参考图流程必须先做资产/空间一致性审查。以下情况必须输出 `任务失败：参考资产冲突` 并停止：
+
+- 图片用途不清或资产编号无法匹配。
+- 俯视图/站位图与透视参考图发生空间冲突。
+- 用户文字与参考图中的门、窗、床、桌、车、角色站位、机位、道具归属发生冲突。
+- 参考图与主表/台账摘要在人物站位、门窗家具、车辆侧别、道具归属或运动路径上冲突。
+- 多张参考图之间无法判断主次，且会影响空间布局、人物身份或道具归属。
+
+参考图必须转写成具体控制信息，不在最终提示词中写“如图所示”“严格参考图片”“根据图片”。只有角色/道具参考图而没有空间参考时，不从角色/道具图臆造空间；第 1 格按文字推演主平面锚定。
+
+### 纯文字输入
+
+当输入只有剧本文字、纯剧情段落、文字版分镜、Markdown/Excel 表格内容、表格截图转写内容、局部镜号或镜号范围时，按纯文字流程执行。
+
+纯文字流程不得要求用户补参考图；不得为了画面丰富新增角色、新道具、新建筑、新动作结果或新对白。如果输入中出现参考图或资产线索，切换到参考图流程。
+
+## 9 宫格版式规则
+
+- 整体画布必须是 `wide horizontal 16:9 canvas`。
+- 输出固定为 `clean 3x3 storyboard grid`，不得改成 7 格、竖版 2:3、正方形拼贴或不规则多格。
+- 9 个宫格全部必须是 `horizontal 16:9 storyboard frame`，不得画成正方形、竖图或等比例混乱的小格。
+- 原始 Image2 生图画布不得使用 `3:2`、`4:3` 或横版 A4；这些比例只允许作为脚本后处理审阅版或 PDF 版式。
+- Panel 1 是 3x3 网格内的主平面锚定格，不跨栏；Panels 2-9 从 Panel 1 推进剧情。
+- Panels 2-9 只能从 Panel 1 裁切、推进、反打、俯拍、侧拍或换焦点，不得重新布景。
+
+## 语义规划闸门
+
+生成正式 Markdown 之前，必须先完成语义规划闸门。以下任一条件失败时，输出 `任务失败：su-image9 语义规划失败`，列出失败项，并停止；不得生成 `Image2 可复制提示词`，不得进入生图。
+
+- 分页必须按连续空间、人物关系轴线、车辆内外连续关系、幻境/现实层级切段；不得只按镜头数量均衡切段。
+- 同一页九宫格只能有一个可继承的主空间锚点。若来源发生明确转场、切回、进入另一空间、记忆层级切换或车内外关系断裂，必须拆成新页，除非 Panel 1 能同时建立这些层级的从属关系。
+- Panel 1 必须是空间主锚定，不得直接使用特写、极近特写、单人近景、主观局部、中景反应或道具特写作为 Panel 1。
+- 如果来源第一镜不是空间锚定，必须在不新增剧情事实的前提下改写 Panel 1：只建立已公开空间、固定物、角色起点、车辆位置、道路方向、门窗家具、层级关系和未来对象的空位。
+- 每个 Panel 必须有唯一的主体、动作阶段、构图任务和对象状态；不得为了凑满 9 格直接复用同一来源镜头或同一句画面描述。
+- 对话、对视、过肩、反打、保护、追击、车内外互看、旁观层观看事故等关系镜头，必须先输出具体轴线，不得只写泛化的 `do not cross the axis`。
+- 车辆页必须逐 Panel 写清车辆局部坐标、座位、车窗侧、摄影机占位、车内外同侧关系和 `screen left/right` 投影，不得只写通用左舵规则。
+
+语义失败格式：
+
+```markdown
+任务失败：su-image9 语义规划失败
+
+失败项：
+| 编号 | 类型 | 位置 | 原因 | 修复要求 |
+|---|---|---|---|---|
+| 1 | ... | ... | ... | ... |
+
+不生成正式 Image2 提示词。
+```
+
+### Strict panel geometry blueprint
+
+英文最终提示词必须携带这一组几何硬约束，避免九宫格变成方格、竖窄格、混合尺寸小格或不规则漫画拼贴：
+
+- `Strict panel geometry blueprint, mandatory before drawing:`
+- `Treat the final canvas as a clean wide horizontal 16:9 layout.`
+- `Draw exactly nine separate straight rectangular panel frames with visible gutters.`
+- `Arrange the 9 panels in a clean 3x3 storyboard grid: three equal columns and three equal rows.`
+- `All 9 panels must have the same width, the same height, the same 16:9 aspect ratio, and aligned edges.`
+- `Each panel frame must remain a flat horizontal 16:9 rectangle.`
+- `Do not let any panel become square, vertical, tall, narrow, compressed, stretched, trapezoid, diagonal, rounded, or irregular.`
+- `Keep gutters and margins as empty separating space. If a close-up needs more room, use empty background or negative space inside that panel; never change the panel shape or aspect ratio.`
+- `Do not create 3:2, 4:3, A4, square, vertical, mixed-size, manga, comic, collage, or poster layouts.`
+- `Do not create a manga page, comic page, dynamic collage, masonry grid, mixed panel sizes, tilted frames, perspective-distorted frames, overlapping panels, or a poster composition.`
+- `The content inside a panel may crop or zoom, but the panel frame itself must remain a flat horizontal 16:9 rectangle.`
+
+## 后处理中文标注层
+
+后处理中文标注层是生图后的外部排版步骤，不属于 Image2 生图内容，严禁写入 `Image2 可复制提示词` 代码块。需要分发给同事、导演或制片审阅时，默认同时规划一版标注图：
+
+- 原始生图保持无字；不得在 Image2 提示词里要求生成中文、镜号、场次、字幕、箭头文字或说明文字。
+- 标注版在整张图最左上方页眉写中文：`场次/场景｜镜头编号范围`，例如 `13-1 赤狐岭迷雾深林 日 外｜镜头001-009`。
+- 标注版在每个单独宫格下方的外部标签区写中文：`C序号｜视角｜景别｜运镜`，例如 `C1｜微俯视｜大全景｜伸缩摇臂缓慢下降`。
+- `视角｜景别｜运镜` 的计划值必须只从 `shot_data.json` 的 `camera_main_image` 开头方括号读取；不得翻译成英文，不得根据画面猜写，不得用模型自行概括，不得混用中英文。
+- 多镜头合并 Panel 默认使用来源范围首镜头三要素；若生成提示词明确指定主镜头，则以该主镜头三要素为准。
+- 后处理前必须做图片构图核对：逐格检查生成图的实际视角、景别、运镜表达是否大体符合对应 JSON 三要素和原分镜剧情。
+- 若图片与 JSON 三要素或原分镜剧情明显不符，不允许把标签改成看似匹配的假三要素；该格必须标记为 `构图不符，需重生/人工确认`，优先重生该段或该页。
+- 标签区必须位于宫格外部排版层，不得压缩、遮挡、裁切或覆盖任何 16:9 宫格内容。
+- 标注版可由脚本扩展为 `3:2` 横版审阅图或 A4 横版 PDF；这些比例只属于分发版式，不改变原始无字 16:9 九宫格。
+- 若生成 PDF、图册、PPT 或网页索引，优先使用标注版；若要继续二次生图或修图，保留无字原图。
+
+## 第 1 格主平面锚定
+
+- 所有内景、外景、院落、走廊、房间、道路、车厢等连续九宫格，Panel 1 必须优先建立主平面锚定。
+- 即使原始第一节点是特写、近景或反应镜头，也要把 Panel 1 改写为全景、大全景、俯视全景或主观全景锚定格。
+- Panel 1 不得新增剧情事实，不得新增角色、道具、建筑、车辆、动物或对白。
+- 尚未在剧情中出现的人物、道具、车辆、动物或灵异对象不得提前画出；只能锚定其未来出现的空位置、门口、房间中央、道路尽头、桌面空位等可公开空间。
+- 后续近景如果裁掉家具、地形、门窗或道路，背景应保持简化或来自 Panel 1 局部；不得补画新家具、新门窗、新街道或新房间。
+- Panel 1 的英文描述必须写明：空间边界、主方向、固定锚点、角色或车辆初始位置、允许隐藏对象、后续继承方式、禁止重建内容。
+- 若 Panel 1 来源于重写锚定而非原镜头本身，必须在中文 `九格取舍表` 中标注 `重写为空间锚定`，并说明没有新增剧情事实。
+
+## 固定物与空间锁定
+
+9 宫格必须吸收 7 格版的固定物约束。按任务实际场景输出这些中文表格：
+
+- `空间概念`：场景边界、方向锁定、摄影机轴线、初始坐标、允许位移、禁止漂移。
+- `第1格主平面锚定表`：空间类型、锚定景别、固定锚点、允许隐藏对象、后续继承规则、禁止提前揭示或重建。
+- `门窗家具几何锁定表`：门的墙面、铰链侧、把手侧、开合方向；窗的墙面、内外侧和光源；家具的墙面、屏幕区域、正/侧面朝向和路径关系。
+- `固定物屏幕投影表`：每格中门、床、桌、梳妆台、镜子、车门、道路入口等固定物的屏幕投影；不可见时写“裁掉/画外”，不能写成新位置。
+- `前序9格布局继承表`：Panels 2-9 逐格写清继承 Panel 1 哪些锚点、哪些只允许裁切、哪些不得重画。
+- `对象足迹与朝向表`、`机位编号表`、`摄影机朝向表`、`对象可见性表` 按对象和镜头关系输出。
+- `逐格差异表`：每个 Panel 必须写清与其他 Panel 不同的主体、动作阶段、景别/角度、对象状态和信息增量，防止重复分格。
+
+## 车辆局部坐标与车内物理规则
+
+这是从 7 格版补入 9 宫格的强制升级。只要九宫格内出现车辆、下车、车内外连续关系、车窗框中框、后排反打、车内外对话或透过车窗看人，就必须输出车辆锁定表。
+
+- 本项目车辆默认左舵；若文字或已确认参考图明确右舵，则以来源为准，并在中文表格和英文提示词中明示。
+- 必须同时区分 `vehicle left/right/front/rear` 和 `screen left/right`；禁止把车辆左右直接等同为画面左右。
+- 左舵车固定推演：驾驶座 = `vehicle front-left`，副驾 = `vehicle front-right`，右后排 = `vehicle rear-right`，副驾下车后人物位于 `vehicle-right exterior side`。
+- 如果角色从副驾下车，后续车内镜头只能透过同一侧车窗看到该角色。
+- `vehicle rear-right seat is directly adjacent to the vehicle-right rear door/window.`
+- 若被拍人物在 `vehicle rear-right`，摄影机应在 `vehicle rear-left or rear-center-left`，斜拍向 `vehicle rear-right` 和他身旁的右后窗；摄影机不能占掉被拍人物座位。
+- 车内镜头必须写清摄影机所在座位/区域、镜头朝向哪侧车窗、窗外继承 Panel 1 的哪部分外景锚点。
+- 车辆页的每个相关 Panel 描述都必须包含具体坐标句，格式应覆盖：`vehicle-local position`、`camera occupancy`、`view direction`、`visible window/side`、`screen projection`。
+- 车外事故、车头、车轮、车窗、车内父亲、车内后排母子、车内恶念、眉心入体等连续关系，必须继承同一辆车和同一事故方向，不得在不同 Panel 中重置车辆朝向。
+- 如果来源没有明确后排左右座位，不得擅自把角色固定到错误一侧；可以锁定为 `same rear bench, adjacent rear-row positions`，但必须明确摄影机不占用后排人物位置，并保持同一后排区域。
+
+必填车辆表：
+
+- `车辆舵向与座位锁定表`
+- `车辆局部坐标与屏幕投影表`
+- `车辆座位-车窗邻接表`
+- `车内摄影机占位表`
+- `车内外同侧窗口关系表`
+- `逐Panel车辆坐标表`
+
+## 对视轴线与反打锁定
+
+当出现两人对视、对话、正反打、过肩、反应近景或关系近景时，必须先输出 `对视轴线与反打锁定表`。
+
+- 写清谁在轴线 A 端、谁在轴线 B 端、摄影机允许停在哪一侧、禁止跨到哪一侧。
+- 锁定 `screen left` / `screen right`；反打时只能裁切、换景别或换焦点，不得左右互换。
+- 过肩和反打必须指定肩位，不得只写“过肩”“反打”“over the shoulder”或“reverse angle”。
+- 英文 Panel 描述必须包含同侧轴线、具体肩位、`screen left/screen right` 和 `Do not cross the axis or swap screen sides.`
+- 旁观层观看事故、角色观看黑雾、角色隔车窗/车内外关系，也必须视为轴线关系。必须写清观察者端、被观察事件端、摄影机所在侧和禁止互换的屏幕方向。
+- `对视轴线与反打锁定表` 中不得只写原则句。必须至少包含一个具体人物/对象名、一个 A/B 端、一个摄影机侧和一组 `screen left/screen right`。
+
+## 九格取舍
+
+- 有主表时，按用户指定场景、镜号范围或若干镜头生成，不重新拆主表，不改变镜号含义。
+- 来源节点少于 9 个时，用同一镜头内的可见阶段、景别、角度、关键反应或道具细节补足。
+- 来源节点多于 9 个时，只保留最能表达空间关系、动作推进、道具变化、情绪转折和收尾状态的 9 个节点。
+- Panel 1 固定服务主平面锚定；Panels 2-9 承接剧情推进。
+- 每格必须写清主体、动作、景别、观察角度、构图、空间关系、角色朝向、距离、互动对象、情绪可见方式、道具位置/归属/变化和动作结果。
+- 来源节点少于 9 个时，补足格必须来自来源可追溯的不同阶段；同一来源镜头若被拆分，必须拆成 `建立位置`、`动作开始`、`动作结果`、`反应`、`道具状态变化` 等不同画面，不得复用相同镜头描述。
+- 每页必须输出 `九格去重检查表`：Panel、来源镜头、是否重复、唯一视觉任务、与前后 Panel 的差异。
+- 若某页无法在不重复、不新增事实的前提下得到 9 个不同画面，必须缩小或扩大来源范围重新分页；不得硬凑。
+
+## 语义输出前校验
+
+输出正式提示词前必须逐页校验：
+
+- Panel 1 是否为主平面锚定，且不是特写/近景/局部反应。
+- Panels 1-9 是否没有重复来源镜头的相同画面任务。
+- 本页是否只有一个可继承主空间，或已明确主空间与从属层级关系。
+- 关系镜头是否有具体轴线、肩位和 `screen left/right`。
+- 车辆镜头是否有逐 Panel 车辆坐标、座位、窗侧和摄影机占位。
+- 对象可见性是否没有让画外对象以阴影、倒影、小黑点或背景轮廓出现。
+- Image2 代码块是否不包含后处理中文标注、`C序号`、页眉、镜号或任何画内文字要求。
+
+任一校验失败，必须按 `任务失败：su-image9 语义规划失败` 输出，不得生成正式提示词。
+
+## 英文最终提示词结构
+
+最终 `Image2 可复制提示词` 按以下顺序组织：
+
+1. Deliverable
+2. Style
+3. Global continuity rules
+4. Reference usage 或 Text-derived layout
+5. Panel 1 master spatial layout anchor
+6. Door/window/furniture geometry lock
+7. Vehicle handedness and local coordinate lock
+8. Seat-window adjacency and interior camera occupancy lock
+9. Camera map
+10. Eyeline axis and reverse-shot lock
+11. Object visibility and boundaries
+12. Panel 1-9
+13. Negative constraints
+
+必须包含硬词：
+
+- `Generate one wide horizontal 16:9 canvas containing a clean 3x3 storyboard grid.`
+- `Each of the 9 panels must also be a horizontal 16:9 storyboard frame.`
+- `Panel 1 is the master spatial layout anchor for the entire 3x3 grid.`
+- `All Panels 2-9 must be derived from the same Panel 1 layout.`
+- `Do not redesign the room, exterior location, furniture footprint, terrain, road, doorway, vehicle position, or object positions in later panels.`
+- `Strict panel geometry blueprint, mandatory before drawing:`
+- `Arrange the 9 panels in a clean 3x3 storyboard grid: three equal columns and three equal rows.`
+- `All 9 panels must have the same width, the same height, the same 16:9 aspect ratio, and aligned edges.`
+- `Do not let any panel become square, vertical, tall, narrow, compressed, stretched, trapezoid, diagonal, rounded, or irregular.`
+- `Do not create 3:2, 4:3, A4, square, vertical, mixed-size, manga, comic, collage, or poster layouts.`
+- `Do not generate any text, labels, captions, panel numbers, scene headers, shot numbers, subtitles, arrows, or watermarks inside the image.`
+- `rough black-and-white pencil storyboard sketch`
+- `low-detail faces`
+- `light gray shading only`
+
+否定约束固定包含：`No photorealism, no film still look, no realistic skin texture, no cinematic lighting, no polished illustration, no manga page, no comic page layout, no dynamic collage, no masonry grid, no poster composition, no color, no text inside the image, no labels, no subtitles, no arrows, no watermarks, no square panels, no vertical panels, no tall panels, no narrow panels, no mixed-size panels.`
+
+## 生图与验收
+
+只有用户明确要求生图或 ZIP 时才生图。每段提示词生成一张独立 3x3 九宫格 PNG，PNG 放入 `pages/`，与 `prompts.md` 打包 ZIP。
+
+原始生图目检顺序固定为：整体横版 16:9、不得是 3:2/4:3/横版 A4、3x3 九格、9 格同宽同高、每格 16:9、无方格/竖窄格/混合尺寸宫格、无画内文字、Panel 1 主平面锚定、固定物几何继承、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口、反打轴线、对象可见性。任一失败，收紧提示词并重生一次；最多连续重生两次。
+
+标注版验收顺序固定为：原始 16:9 宫格比例未改变、中文页眉 `场次/场景｜镜头编号范围` 存在、每个宫格下方 `C序号｜视角｜景别｜运镜` 三要素存在、三要素逐项来自 `shot_data.json`、生成图构图与原分镜剧情大体一致、构图不符处已标记为需重生/人工确认、文字清晰、标签区不遮挡宫格、不压缩宫格、不改变宫格边框。
+
+生图前还必须完成语义验收：重复格、Panel 1 非锚定、跨空间混页、泛化轴线、车辆坐标缺失任一存在时，不得生图。

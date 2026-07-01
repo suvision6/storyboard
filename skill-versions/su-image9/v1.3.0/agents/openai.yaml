@@ -1,0 +1,4 @@
+﻿interface:
+  display_name: "Image2 9格"
+  short_description: "生成 Image2 3x3 九宫格分镜提示词"
+  default_prompt: "Use $su-image9 to create Image2 3x3 black-and-white storyboard prompts that keep the wide 16:9 nine-panel layout while applying Panel 1 spatial anchoring, fixed-object projection, vehicle-local coordinate locks, seat-window adjacency, and camera-occupancy checks."

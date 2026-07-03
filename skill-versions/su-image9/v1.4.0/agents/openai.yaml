@@ -1,0 +1,4 @@
+﻿interface:
+  display_name: "Image2 9格"
+  short_description: "生成稳定石墨铅笔风格的 Image2 3x3 九宫格分镜提示词"
+  default_prompt: "Use $su-image9 to create Image2 3x3 black-and-white graphite storyboard prompts with a fixed SYSTEM_STYLE_LAYER, SCENE_LAYER, CAMERA_RULE_LAYER, PANEL_LAYER P01-P09, wide 16:9 nine-panel layout, Panel 1 spatial anchoring, fixed-object projection, vehicle-local coordinate locks, seat-window adjacency, camera-occupancy checks, and text-free image generation with script-derived Chinese annotation after generation."

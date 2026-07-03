@@ -1,16 +1,18 @@
 ---
 name: su-image2-storyboard-grid-text-zh
-version: "1.5.0"
-description: "无参考图时使用。根据剧本文字、纯剧情段落、文字版分镜、Markdown/Excel 表格、局部镜号或表格截图转写内容，推演适用于 Image2/gpt-image-2 的 7 格 2:3 竖版跨栏锚定分镜提示词 Markdown。分析表使用中文，最终 Image2 可复制提示词使用英文主导。默认生成 7-panel vertical 2:3 storyboard sheet：整体画布为 vertical 2:3，第 1 格为顶部全宽 horizontal 16:9 主平面锚定格，下方 6 格为 2-column by 3-row grid，7 个宫格全部为 horizontal 16:9 storyboard frames。必须锁定门窗家具几何、车辆舵向与座位、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口关系、固定物屏幕投影、对视轴线、反打肩位和银幕左右关系。不得新增剧情事实，不要求补参考图，不修改 su-fenjingskill-zh 主表、Prompt 列、Storyboard 列、Excel 或校验脚本。"
+version: "1.5.1"
+description: "无参考图时使用。根据剧本文字、纯剧情段落、文字版分镜、Markdown/Excel 表格、局部镜号或表格截图转写内容，推演适用于 Image2/gpt-image-2 的 7 格 2:3 竖版跨栏锚定分镜提示词 Markdown。读取 su-fenjingskill-zh 主分镜时，必须优先继承 SU Image Batch Context 和主表/台账摘要，Prompt 列只能作为镜头摘要辅助，不能作为主输入或唯一输入。分析表使用中文，最终 Image2 可复制提示词使用英文主导。默认生成 7-panel vertical 2:3 storyboard sheet：整体画布为 vertical 2:3，第 1 格为顶部全宽 horizontal 16:9 主平面锚定格，下方 6 格为 2-column by 3-row grid，7 个宫格全部为 horizontal 16:9 storyboard frames。必须锁定门窗家具几何、车辆舵向与座位、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口关系、固定物屏幕投影、对视轴线、反打肩位和银幕左右关系。不得新增剧情事实，不要求补参考图，不修改 su-fenjingskill-zh 主表、Prompt 列、Storyboard 列、Excel 或校验脚本。"
 ---
 
 # Image2 7 格分镜提示词｜纯文字版
 
 ## 版本
 
-<!-- skill-version: 1.5.0 -->
+<!-- skill-version: 1.5.1 -->
 
 用于无参考图、只依靠文字来源生成 Image2 7 格 2:3 竖版黑白分镜提示词。文字来源可以是剧本文字、文字版分镜、主表内容、Markdown/Excel 表格、表格截图转写内容或局部镜号范围。
+
+1.5.1 增加 SU VISION Workflow v1.1 的主分镜继承规则：读取 `su-fenjingskill-zh` 交付物时，优先读取 `SU Image Batch Context` 和主表/台账摘要，不建立另一套主连续性台账。Prompt 列只能辅助理解每镜可见动作、景别、时长和七格取舍，不得替代主表、台账、站位、迁移、道具或空间轴线。
 
 1.5.0 强化单格比例与车辆内景物理可拍性：整体故事板继续为 `vertical 2:3 canvas`，但 7 个宫格全部必须是 `horizontal 16:9 storyboard frames`；第 1 格为顶部全宽 16:9 跨栏锚定格，约占整张画布 35%-38% 高度。同时新增座位-车窗邻接与车内摄影机占位规则，防止车内镜头为了构图把人物移出原座位。
 
@@ -26,8 +28,35 @@ description: "无参考图时使用。根据剧本文字、纯剧情段落、文
 - 不回写主表，不改变镜号、原剧本段落、镜头时长、运镜主画面、备注、Prompt 列或 Storyboard 列。
 - 默认输出 Markdown 提示词文件；没有明确生图要求时不生成 PNG/ZIP。
 - 只从文字事实推演 7 格；不得为了画面丰富新增角色、新道具、新建筑、新动作结果或新对白。
+- 不建立或维护另一套主连续性台账；只把 `su-fenjing` 台账摘要转译成局部图像连续性锁定表。
+- 不得只读取 `su-fenjing` 的 Prompt 列生成正式生图提示词。
 - 第 1 格跨栏主平面锚定优先级高于原始镜头景别，但低于“不新增剧情事实”和“不提前揭示隐藏对象”。
 - 若输入出现参考图、资产路径、角色图、场景图、俯视图、站位图、尾帧或图片编号，停止使用本 skill，改用 `../su-image2-storyboard-grid-ref-zh/SKILL.md`。
+
+## 连续性继承输入
+
+当输入来自 `su-fenjingskill-zh` 已验收分镜表时，先读取当前批次的 `SU Image Batch Context`：
+
+```text
+主分镜版本
+场景名
+镜号范围
+对应主表行
+对应 continuity_logs 场景摘要
+当前镜号范围涉及的 continuity_updates
+visible_characters
+visible_props
+固定物、门窗、道路、车辆、道具摘要
+允许位移与禁止漂移
+```
+
+输入优先级固定为：
+
+1. `shot_data.json` 中的 `continuity_logs`、`continuity_updates`、`shots`、`visible_characters`、`visible_props`
+2. 主表前 6 列
+3. Prompt 列，仅作摘要辅助
+
+将 `su-fenjing` 台账摘要转译为本 skill 的 `空间概念`、`第1格跨栏主平面锚定表`、`前序7格布局继承表`、`对象可见性表`、`对视轴线与反打锁定表`。如果只提供 Markdown 或 Excel，没有 JSON 台账，必须在输出中注明“未读取 JSON 台账，按主表可见信息降级执行”。
 
 ## 工作流
 
@@ -383,6 +412,9 @@ No photorealism, no film still look, no realistic skin texture, no cinematic lig
 ## 输出前自检
 
 - 是否没有参考图输入；若有，是否已改用参考图版。
+- 输入来自 `su-fenjingskill-zh` 时，是否已读取 `SU Image Batch Context` 或明确标注降级执行。
+- 是否没有把 Prompt 列当成主输入或唯一输入。
+- 是否没有建立另一套主连续性台账。
 - 是否完整阅读全部文字来源。
 - 是否没有新增来源外角色、道具、剧情或对白。
 - 是否输出 `第1格跨栏主平面锚定表`，并确认第 1 格是全宽跨栏大锚定格。

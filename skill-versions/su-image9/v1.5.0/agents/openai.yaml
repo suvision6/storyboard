@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image2 9格"
+  short_description: "生成压缩可审计的 Image2 3x3 石墨分镜提示词"
+  default_prompt: "Use $su-image9 to create Image2 3x3 black-and-white graphite storyboard prompts with a required analysis draft and final_image_prompts.md compression pass, real reference-image binding checks, character/prop anti-swap anchors, concrete screen-left/right axis locks, strict 16:9 nine-panel geometry, and text-free image generation validation."

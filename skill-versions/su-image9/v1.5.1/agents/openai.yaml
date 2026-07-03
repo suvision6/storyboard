@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image2 9格"
+  short_description: "生成带连续性校验的 Image2 3x3 石墨分镜提示词"
+  default_prompt: "Use $su-image9 to create Image2 3x3 black-and-white graphite storyboard prompts with required continuity_logs/continuity_updates ingestion, P01 master spatial anchoring, fixed-object projection, panel inheritance maps, concrete axis and shoulder locks, panel difference tasks, compressed final_image_prompts.md, real reference-image binding checks, and the su-image9 validator before any image generation."

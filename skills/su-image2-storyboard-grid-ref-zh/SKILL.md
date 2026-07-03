@@ -1,16 +1,18 @@
 ---
 name: su-image2-storyboard-grid-ref-zh
-version: "1.5.0"
-description: "有参考图、资产图、俯视图、站位图、尾帧、角色图、道具图或图片编号时使用。将参考资产和文字剧情转写为适用于 Image2/gpt-image-2 的 7 格 2:3 竖版跨栏锚定黑白分镜提示词 Markdown；先做资产/空间一致性审查，冲突或用途不清时直接任务失败并列出冲突点。最终 Image2 可复制提示词使用英文主导。默认生成 7-panel vertical 2:3 storyboard sheet：整体画布为 vertical 2:3，第 1 格为顶部全宽 horizontal 16:9 主平面锚定格，下方 6 格为 2-column by 3-row grid，7 个宫格全部为 horizontal 16:9 storyboard frames。必须服从俯视图/站位图/场景参考图的空间布局，锁定门窗家具几何、车辆舵向与座位、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口关系、固定物屏幕投影、对视轴线、反打肩位和银幕左右关系。不得修改 su-fenjingskill-zh 主表、Prompt 列、Storyboard 列、Excel 或校验脚本。"
+version: "1.5.1"
+description: "有参考图、资产图、俯视图、站位图、尾帧、角色图、道具图或图片编号时使用。将参考资产和文字剧情转写为适用于 Image2/gpt-image-2 的 7 格 2:3 竖版跨栏锚定黑白分镜提示词 Markdown；读取 su-fenjingskill-zh 主分镜时，必须优先继承 SU Image Batch Context 和主表/台账摘要，Prompt 列只能作为镜头摘要辅助，不能作为主输入或唯一输入；先做资产/空间一致性审查，冲突或用途不清时直接任务失败并列出冲突点。最终 Image2 可复制提示词使用英文主导。默认生成 7-panel vertical 2:3 storyboard sheet：整体画布为 vertical 2:3，第 1 格为顶部全宽 horizontal 16:9 主平面锚定格，下方 6 格为 2-column by 3-row grid，7 个宫格全部为 horizontal 16:9 storyboard frames。必须服从俯视图/站位图/场景参考图的空间布局，锁定门窗家具几何、车辆舵向与座位、车辆局部坐标、座位-车窗邻接、车内摄影机占位、车内外同侧窗口关系、固定物屏幕投影、对视轴线、反打肩位和银幕左右关系。不得修改 su-fenjingskill-zh 主表、Prompt 列、Storyboard 列、Excel 或校验脚本。"
 ---
 
 # Image2 7 格分镜提示词｜参考图版
 
 ## 版本
 
-<!-- skill-version: 1.5.0 -->
+<!-- skill-version: 1.5.1 -->
 
 用于有参考图或美术资产的 Image2 7 格 2:3 竖版黑白分镜提示词任务。参考图版的第一目标是稳定资产用途、空间布局、角色身份、道具归属、门窗家具几何和机位约束。
+
+1.5.1 增加 SU VISION Workflow v1.1 的主分镜继承规则：读取 `su-fenjingskill-zh` 交付物时，优先读取 `SU Image Batch Context` 和主表/台账摘要，不建立另一套主连续性台账。Prompt 列只能辅助理解每镜可见动作、景别、时长和七格取舍，不得替代主表、台账、站位、迁移、道具或空间轴线。参考图若与主表/台账摘要冲突，按参考资产冲突处理，除非用户明确指定裁决方式。
 
 1.5.0 强化单格比例与车辆内景物理可拍性：整体故事板继续为 `vertical 2:3 canvas`，但 7 个宫格全部必须是 `horizontal 16:9 storyboard frames`；第 1 格为顶部全宽 16:9 跨栏锚定格，约占整张画布 35%-38% 高度。同时新增座位-车窗邻接与车内摄影机占位规则，防止车内镜头为了构图把人物移出原座位。
 
@@ -26,7 +28,35 @@ description: "有参考图、资产图、俯视图、站位图、尾帧、角色
 - 默认输出 Markdown 提示词文件；没有明确生图要求时不生成 PNG/ZIP。
 - 参考图只转写成具体可生成控制信息，不在最终提示词中写“如图所示”“严格参考图片”“根据图片”。
 - 只有角色/道具参考图而没有空间参考时，不从角色/道具图臆造空间；第 1 格按文字推演主平面锚定。
+- 不建立或维护另一套主连续性台账；只把 `su-fenjing` 台账摘要转译成局部图像连续性锁定表。
+- 不得只读取 `su-fenjing` 的 Prompt 列生成正式生图提示词。
 - 5 格暂不作为默认规则。
+
+## 连续性继承输入
+
+当输入来自 `su-fenjingskill-zh` 已验收分镜表时，先读取当前批次的 `SU Image Batch Context`：
+
+```text
+主分镜版本
+场景名
+镜号范围
+对应主表行
+对应 continuity_logs 场景摘要
+当前镜号范围涉及的 continuity_updates
+visible_characters
+visible_props
+固定物、门窗、道路、车辆、道具摘要
+允许位移与禁止漂移
+参考图用途说明
+```
+
+输入优先级固定为：
+
+1. `shot_data.json` 中的 `continuity_logs`、`continuity_updates`、`shots`、`visible_characters`、`visible_props`
+2. 主表前 6 列和已确认参考资产控制信息
+3. Prompt 列，仅作摘要辅助
+
+将 `su-fenjing` 台账摘要转译为本 skill 的 `空间概念`、`第1格跨栏主平面锚定表`、`前序7格布局继承表`、`对象可见性表`、`对视轴线与反打锁定表`。如果参考图与主表/台账摘要在人物站位、门窗家具、车辆侧别、道具归属或运动路径上冲突，必须触发参考资产冲突失败合同，不得静默改写主连续性。
 
 ## 先决失败规则
 
@@ -384,6 +414,9 @@ No photorealism, no film still look, no realistic skin texture, no cinematic lig
 
 - 是否先完成资产/空间一致性审查。
 - 是否没有触发先决失败规则。
+- 输入来自 `su-fenjingskill-zh` 时，是否已读取 `SU Image Batch Context` 或明确标注降级执行。
+- 是否没有把 Prompt 列当成主输入或唯一输入。
+- 是否没有建立另一套主连续性台账。
 - 是否有 `资产控制`，并且每张参考图都有明确用途。
 - 是否把参考图转写成具体控制信息，没有写“如图所示”。
 - 是否输出 `第1格跨栏主平面锚定表`，并确认第 1 格优先服从俯视图/站位图/场景图等空间参考。

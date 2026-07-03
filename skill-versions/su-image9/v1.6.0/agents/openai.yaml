@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image2 9格导演草图"
+  short_description: "生成带空间稳定校验的 Image2 3x3 导演草图提示词"
+  default_prompt: "Use $su-image9 to create Image2 3x3 director blocking sketch storyboard prompts. Prioritize continuity_logs/continuity_updates ingestion, P01 master spatial anchoring, fixed-object projection, floor-plane locks, forbidden standing zones, camera composition locks, concrete axis and shoulder locks, split composition deltas, prop temporal phase locks, compressed final_image_prompts.md, real reference-image binding checks, and the su-image9 validator before any image generation. Treat reference images only as identity, hairstyle, costume silhouette, prop shape, and prop ownership anchors, not as detail or style targets."

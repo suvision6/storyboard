@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image2 9格导演草图"
+  short_description: "生成经 canon 编译和三级门禁校验的 Image2 3x3 导演草图提示词"
+  default_prompt: "Use $su-image9 v1.7.1 to create Image2 3x3 director blocking sketch storyboard prompts. Keep analysis detailed but final_image_prompts.md short and use @CANON(NAME) markers for lock blocks. Build panel_plan.json first, run validate_su_image9_prompt.py in full or text-only mode, and use only final_image_prompts.compiled.md for image generation. Stop at HC-1, HC-2, and HC-3 until the user explicitly replies 确认 / 修改：<意见> / 终止. Treat reference images only as silhouette/costume/prop ownership anchors, not as face, detail, or style targets."

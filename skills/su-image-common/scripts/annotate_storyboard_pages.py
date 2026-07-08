@@ -34,6 +34,8 @@ class PageSpec:
     source: str
     panels: List[PanelSpec]
     header: Optional[str] = None
+    status: str = "delivered"
+    reason: str = ""
 
 
 def load_json(path: Path) -> dict:
@@ -136,6 +138,8 @@ def load_page_specs(page_map: dict) -> List[PageSpec]:
                 source=str(item["source"]),
                 panels=panels,
                 header=item.get("header"),
+                status=str(item.get("status", "delivered")),
+                reason=str(item.get("reason", "")),
             )
         )
     return result
@@ -183,7 +187,7 @@ def derive_header(page: PageSpec, shot_index: Dict[int, dict]) -> str:
 def derive_panel_label(panel: PanelSpec, shot_index: Dict[int, dict]) -> str:
     shot = shot_index[panel.shot_nos[0]]
     angle, shot_size, movement = parse_triad(str(shot.get("camera_main_image", "")))
-    return f"C{panel.panel_no}｜{angle}｜{shot_size}｜{movement}"
+    return f"C{panel.shot_nos[0]}｜{angle}｜{shot_size}｜{movement}"
 
 
 def canonical_boxes(layout: str, width: int, height: int) -> Dict[int, Tuple[int, int, int, int]]:
@@ -224,6 +228,99 @@ def canonical_boxes(layout: str, width: int, height: int) -> Dict[int, Tuple[int
     return boxes
 
 
+def cluster_positions(positions: List[int]) -> List[int]:
+    if not positions:
+        return []
+    clusters: List[List[int]] = [[positions[0]]]
+    for position in positions[1:]:
+        if position <= clusters[-1][-1] + 2:
+            clusters[-1].append(position)
+        else:
+            clusters.append([position])
+    return [round(sum(cluster) / len(cluster)) for cluster in clusters]
+
+
+def dark_line_positions(image: Image.Image, axis: str) -> List[int]:
+    grayscale = image.convert("L")
+    width, height = grayscale.size
+    pixels = grayscale.load()
+    positions: List[int] = []
+    threshold = 72
+    min_fraction = 0.12
+    if axis == "x":
+        for x in range(width):
+            dark = sum(1 for y in range(height) if pixels[x, y] < threshold)
+            if dark / height >= min_fraction:
+                positions.append(x)
+        return cluster_positions(positions)
+    for y in range(height):
+        dark = sum(1 for x in range(width) if pixels[x, y] < threshold)
+        if dark / width >= min_fraction:
+            positions.append(y)
+    return cluster_positions(positions)
+
+
+def select_grid_lines(lines: List[int], expected: int, min_gap: int) -> List[int]:
+    filtered: List[int] = []
+    for line in lines:
+        if not filtered or line - filtered[-1] >= min_gap:
+            filtered.append(line)
+        elif abs(line - filtered[-1]) <= min_gap:
+            filtered[-1] = round((filtered[-1] + line) / 2)
+    if len(filtered) < expected:
+        return []
+    if len(filtered) == expected:
+        return filtered
+    best: List[int] = []
+    best_span = -1
+    for start in range(0, len(filtered) - expected + 1):
+        candidate = filtered[start : start + expected]
+        span = candidate[-1] - candidate[0]
+        if span > best_span:
+            best = candidate
+            best_span = span
+    return best
+
+
+def detect_nine_panel_boxes(image: Image.Image) -> Tuple[Optional[Dict[int, Tuple[int, int, int, int]]], List[str]]:
+    width, height = image.size
+    x_lines = select_grid_lines(dark_line_positions(image, "x"), 6, max(4, round(width * 0.006)))
+    y_lines = select_grid_lines(dark_line_positions(image, "y"), 6, max(4, round(height * 0.006)))
+    warnings: List[str] = []
+    if len(x_lines) != 6 or len(y_lines) != 6:
+        warnings.append("actual_grid_detection_failed; canonical_boxes_used")
+        return None, warnings
+    boxes: Dict[int, Tuple[int, int, int, int]] = {}
+    panel_no = 1
+    for row in range(3):
+        top = y_lines[row * 2]
+        bottom = y_lines[row * 2 + 1]
+        for col in range(3):
+            left = x_lines[col * 2]
+            right = x_lines[col * 2 + 1]
+            if right <= left or bottom <= top:
+                warnings.append("actual_grid_detection_invalid_geometry; canonical_boxes_used")
+                return None, warnings
+            boxes[panel_no] = (left, top, right, bottom)
+            panel_no += 1
+    return boxes, warnings
+
+
+def resolve_panel_boxes(page: PageSpec, image: Image.Image) -> Tuple[Dict[int, Tuple[int, int, int, int]], str, List[str]]:
+    width, height = image.size
+    explicit_boxes = {panel.panel_no: panel.box for panel in page.panels if panel.box is not None}
+    if len(explicit_boxes) == len(page.panels):
+        return {panel.panel_no: panel.box for panel in page.panels if panel.box is not None}, "explicit_page_map_boxes", []
+    if page.layout == "9":
+        detected, warnings = detect_nine_panel_boxes(image)
+        if detected:
+            return detected, "detected_image_grid", warnings
+        default_boxes = canonical_boxes(page.layout, width, height)
+        return default_boxes, "canonical_fallback", warnings
+    default_boxes = canonical_boxes(page.layout, width, height)
+    return default_boxes, "canonical_layout", ["actual_grid_detection_not_supported_for_layout_7; canonical_boxes_used"]
+
+
 def validate_panels(page: PageSpec) -> None:
     expected = expected_panels(page.layout)
     panel_nos = sorted(panel.panel_no for panel in page.panels)
@@ -258,10 +355,7 @@ def render_page(
     validate_panels(page)
     image = Image.open(source_path).convert("RGB")
     width, height = image.size
-    default_boxes = canonical_boxes(page.layout, width, height)
-    panel_boxes: Dict[int, Tuple[int, int, int, int]] = {
-        panel.panel_no: panel.box or default_boxes[panel.panel_no] for panel in page.panels
-    }
+    panel_boxes, box_detection, warnings = resolve_panel_boxes(page, image)
     rows = row_panel_groups(page.layout)
     row_tops = [min(panel_boxes[panel_no][1] for panel_no in row) for row in rows]
     row_bottoms = [max(panel_boxes[panel_no][3] for panel_no in row) for row in rows]
@@ -321,6 +415,8 @@ def render_page(
         "source": str(source_path),
         "output": str(output_path),
         "header": header_text,
+        "box_detection": box_detection,
+        "warnings": warnings,
         "panel_labels": {str(panel.panel_no): derive_panel_label(panel, shot_index) for panel in page.panels},
     }
 
@@ -336,8 +432,16 @@ def main() -> int:
     page_specs = load_page_specs(load_json(page_map_path))
     font = select_font(args.font_path, args.font_size)
 
-    manifest = {"pages": []}
+    manifest = {"pages": [], "skipped_pages": []}
     for page in page_specs:
+        if page.status == "not_delivered":
+            manifest["skipped_pages"].append(
+                {
+                    "page_no": page.page_no,
+                    "reason": page.reason or "not_delivered",
+                }
+            )
+            continue
         for panel in page.panels:
             for shot_no in panel.shot_nos:
                 if shot_no not in shot_index:

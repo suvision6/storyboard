@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image2 9格石墨分镜"
+  short_description: "生成 v2.0.0 融合版 Image2 3x3 黑白石墨分镜提示词"
+  default_prompt: "Use $su-image9 v2.0.0 to create Image2 3x3 monochrome graphite storyboard prompts. Preserve the generation-layer contract exactly: SYSTEM_STYLE_LAYER, strict panel geometry blueprint, hard phrase list, and NEGATIVE_CONSTRAINTS must be present in every final image prompt. Use panel_plan.json as the machine track and write PANEL_LAYER PANEL-1 to PANEL-9 as natural-language visual descriptions only. Use validate_su_image9_prompt.py when available; if canon or validator is unavailable, explicitly fall back to the inline SKILL lock blocks and produce the SC self-check table. Never modify su-fenjingskill-zh or its primary table, Prompt column, Storyboard column, Excel, or validation scripts."

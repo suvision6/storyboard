@@ -1,0 +1,24 @@
+{
+  "skill": "su-image9",
+  "version": "2.1.0",
+  "schema_version": "2.1",
+  "status": "PASS",
+  "exit_code": 0,
+  "release_ready": true,
+  "source": {
+    "file_sha256": "59575057e113d660566cad40598224b8ca88517ff1001b47e698664fce2941f3",
+    "content_hash": "68209feb43c8c19aa11d110d36d99b2747bfe40ce632c20b345aa58c962dbe29",
+    "skill_version": "2.4.2",
+    "validation_status": "PASS",
+    "warning_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "canon": {
+    "version": "2.1.0",
+    "sha256": "8dc39ab6381ce375d2e80239aae53241f0f2e54b5ad09e7c5848f454d69c837a"
+  },
+  "metrics": {
+    "page_count": 1,
+    "prompt_characters": 7266
+  },
+  "findings": []
+}

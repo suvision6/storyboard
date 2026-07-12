@@ -1,4 +1,5 @@
-skill:
-  name: su-fenjingskill-zh
+# skill-version: 2.4.3 / rule-revision: 2.4.3-contract-integrity-p2-2026-07-12
+interface:
+  display_name: "su-fenjingskill-zh"
   short_description: "将剧本转换为经过人工门禁、连续性校验和三文件一致性校验的稳定 7 列导演分镜表。"
-  default_prompt: "使用 $su-fenjingskill-zh 将下面剧本转换为 2.4.0 规则下的 7 列专业分镜表；按 Gate A/B/C 停机审核，主表不生成关键帧列。"
+  default_prompt: "使用 $su-fenjingskill-zh 按 2.4.3-contract-integrity-p2-2026-07-12 规则将下面剧本转换为稳定 7 列专业分镜表；按 Gate 0/A/B/C 停机审核，主表不生成关键帧列。"

@@ -4,11 +4,23 @@ const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
+const VERSION = "2.4.3";
+const RULE_REVISION = "2.4.3-contract-integrity-p2-2026-07-12";
+
 function usage() {
   console.error(
-    "Usage: node validate_storyboard.js --python <python> " +
+    "Usage (2.4.3): node validate_storyboard.js --python <python> " +
       "--data <shot_data.json> --markdown <storyboard.md> --excel <storyboard.xlsx> " +
-      "[--report <validation_report.json>] [--final-signoff]"
+      "--report <validation_report.json> --workspace-root <dir> [--final-signoff]"
+  );
+  console.error(
+    "Usage (legacy validate): node validate_storyboard.js --python <python> " +
+      "--data <shot_data.json> --markdown <storyboard.md> --excel <storyboard.xlsx> " +
+      "[--report <validation_report.json>] [--workspace-root <dir>]"
+  );
+  console.error(
+    `Wrapper ${VERSION} (${RULE_REVISION}): 2.4.3 validation requires both ` +
+      "--report and --workspace-root; legacy validation keeps them optional."
   );
 }
 
@@ -66,6 +78,7 @@ const child = spawnSync(
     args.excel,
   ]
     .concat(args.report ? ["--report", args.report] : [])
+    .concat(args["workspace-root"] ? ["--workspace-root", args["workspace-root"]] : [])
     .concat(args.finalSignoff ? ["--final-signoff"] : []),
   { stdio: "inherit", windowsHide: true }
 );

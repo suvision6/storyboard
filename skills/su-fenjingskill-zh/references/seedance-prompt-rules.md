@@ -1,8 +1,8 @@
 # Seedance Prompt Rules
 
-<!-- for skill-version: 2.4.0 / rule-revision: 2.4.0-human-gate-stability-2026-07-06 -->
+<!-- for skill-version: 2.4.3 / rule-revision: 2.4.3-contract-integrity-p2-2026-07-12 -->
 
-仅在 **Gate B 批准、导演主表与审计字段冻结之后**阅读本文件，用于派生 `Prompt` 列。当前版本采用稳定精简五字段，不输出复杂长提示词，不生成关键帧或生图提示词。
+仅在 **Gate B 最新轮次批准且 `reviewed_hash` 匹配、导演主表与审计字段冻结之后**阅读本文件，用于派生 `Prompt` 列。当前版本采用稳定精简五字段，不输出复杂长提示词，不生成关键帧或生图提示词。
 
 ## 适用边界
 

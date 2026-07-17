@@ -1,6 +1,6 @@
 # 项目层词表与偏好
 
-<!-- for skill-version: 2.4.4 / rule-revision: 2.4.4-emotion-performance-guard-2026-07-16 -->
+<!-- for skill-version: 2.4.3 / rule-revision: 2.4.3-contract-integrity-p2-2026-07-12 -->
 
 本文件可选，位阶低于 `SKILL.md` 与四份通用 reference。它只保存当前项目的字面词和偏好，不得新增、覆盖或删除通用拆镜规则。文件存在不代表自动启用；需要使用词表时，人工确认后将所需词显式复制到 `metadata.project_lexicon`，并随 Gate 0/A/B hash 冻结。
 

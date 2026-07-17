@@ -1,6 +1,6 @@
 # Continuity And Shot Data Contract
 
-<!-- for skill-version: 2.4.4 / rule-revision: 2.4.4-emotion-performance-guard-2026-07-16 -->
+<!-- for skill-version: 2.4.3 / rule-revision: 2.4.3-contract-integrity-p2-2026-07-12 -->
 
 在拆分 Beat 前完整读取本文件。它只定义连续性台账、Beat/事实、状态迁移、`shot_data` JSON 结构和确定性校验接口；主流程、人工门禁、7 列表、运镜与 Prompt 规则分别以 `SKILL.md`、`camera-language.md`、`hybrid-shot-audit.md`、`seedance-prompt-rules.md` 为准。当前合同为稳定 7 列主表，不包含关键帧列。
 
@@ -152,8 +152,8 @@
 {
   "metadata": {
     "skill_name": "su-fenjingskill-zh",
-    "version": "2.4.4",
-    "rule_revision": "2.4.4-emotion-performance-guard-2026-07-16",
+    "version": "2.4.3",
+    "rule_revision": "2.4.3-contract-integrity-p2-2026-07-12",
     "title": "片名或集名",
     "project_lexicon": {
       "prop_terms": ["项目道具词"], "space_terms": ["项目场景词"], "vfx_terms": ["项目特效词"], "reality_terms": ["项目层级词"], "sound_terms": ["项目声源词"]

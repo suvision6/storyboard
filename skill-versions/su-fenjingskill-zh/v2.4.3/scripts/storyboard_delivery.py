@@ -30,8 +30,8 @@ except Exception:  # pragma: no cover - reported at runtime.
     PatternFill = None
     get_column_letter = None
 
-VERSION = "2.4.4"
-RULE_REVISION = "2.4.4-emotion-performance-guard-2026-07-16"
+VERSION = "2.4.3"
+RULE_REVISION = "2.4.3-contract-integrity-p2-2026-07-12"
 
 # Keep version behavior in one fail-closed table.  Historical entries are
 # validation-only; only VERSION may be built by this release.
@@ -44,15 +44,7 @@ VERSION_PROFILES: dict[str, Any] = {
     "2.4.0": "2.4.0-human-gate-stability-2026-07-06",
     "2.4.1": "2.4.1-source-lock-2026-07-07",
     "2.4.2": "2.4.2-source-lock-entry-guard-2026-07-07",
-    "2.4.3": {
-        "rule_revision": "2.4.3-contract-integrity-p2-2026-07-12",
-        "contract_integrity": True,
-    },
-    "2.4.4": {
-        "rule_revision": RULE_REVISION,
-        "contract_integrity": True,
-        "emotion_performance_guard": True,
-    },
+    "2.4.3": RULE_REVISION,
 }
 
 # Expand the compact declarations above into explicit profiles without
@@ -67,8 +59,7 @@ for _version, _profile in list(VERSION_PROFILES.items()):
     _profile["human_gate"] = _version >= "2.4.0"
     _profile["source_lock"] = _version >= "2.4.1"
     _profile["approved_script_path"] = _version >= "2.4.2"
-    _profile.setdefault("contract_integrity", False)
-    _profile.setdefault("emotion_performance_guard", False)
+    _profile["contract_integrity"] = _version == VERSION
     VERSION_PROFILES[_version] = _profile
 
 RULE_REVISIONS = {
@@ -345,22 +336,6 @@ FORBIDDEN_VISUAL_WORDS = [
     "宛如",
     "好似",
 ]
-EMOTION_PERFORMANCE_FORBIDDEN_WORDS = [
-    "心如刀割",
-    "怒火中烧",
-    "万箭穿心",
-    "悲痛欲绝",
-    "杀气腾腾",
-    "柔情似水",
-    "绝望如深渊",
-    "时间像河流般流淌",
-    "城市在夜色中沉睡",
-]
-PRECISE_EXECUTION_VALUE_PATTERN = re.compile(
-    r"(?:\d+(?:\.\d+)?|[零〇一二两三四五六七八九十百千万]+)\s*"
-    r"(?:mm|cm|m(?![A-Za-z])|Hz|K|毫米|厘米|米|赫兹|开尔文|°|度)",
-    re.IGNORECASE,
-)
 
 REQUIRED_CUT_POINT_CATEGORIES = [
     (
@@ -999,17 +974,6 @@ def version_profile(data: dict[str, Any]) -> dict[str, Any] | None:
 def is_current_contract(data: dict[str, Any]) -> bool:
     profile = version_profile(data)
     return bool(profile and profile.get("contract_integrity"))
-
-
-def uses_emotion_performance_guard(data: dict[str, Any]) -> bool:
-    profile = version_profile(data)
-    return bool(profile and profile.get("emotion_performance_guard"))
-
-
-def descriptive_text_without_dialogue(value: Any) -> str:
-    text = clean_text(value)
-    text = re.sub(r"“[^”]*”", "", text, flags=re.DOTALL)
-    return re.sub(r'"[^"]*"', "", text, flags=re.DOTALL)
 
 
 def requires_hybrid_fields(data: dict[str, Any]) -> bool:
@@ -1677,7 +1641,7 @@ def validate_metadata(
 
 
 def validate_batch_plan(data: dict[str, Any], result: ValidationResult) -> dict[str, set[str]]:
-    """Validate strict-contract batch ownership and return batch -> scene IDs."""
+    """Validate 2.4.3 batch ownership and return batch -> scene IDs."""
 
     if not is_current_contract(data):
         return {}
@@ -2384,7 +2348,7 @@ def validate_continuity_logs(data: dict[str, Any], result: ValidationResult) -> 
     if not isinstance(raw_logs, list):
         result.error("continuity_logs 必须是数组。")
     if is_current_contract(data) and not as_list(raw_logs):
-        result.error(f"{metadata_version(data)} continuity_logs 必须是非空数组。")
+        result.error("2.4.3 continuity_logs 必须是非空数组。")
     for log in as_list(raw_logs):
         if not isinstance(log, dict):
             result.error("continuity_logs 中每一项必须是对象。")
@@ -2644,7 +2608,7 @@ def collect_facts(
     if not isinstance(raw_beats, list):
         result.error("beats 必须是数组。")
     if is_current_contract(data) and not as_list(raw_beats):
-        result.error(f"{metadata_version(data)} beats 必须是非空数组。")
+        result.error("2.4.3 beats 必须是非空数组。")
     for beat in as_list(raw_beats):
         if not isinstance(beat, dict):
             result.error("beats 中每一项必须是对象。")
@@ -3338,7 +3302,7 @@ def validate_rows(
             version_24=use_scene_id,
             strict_contract=is_current_contract(data),
         )
-        validate_camera(data, shot, result)
+        validate_camera(shot, result)
         validate_prompt(shot, result)
         validate_dialogue_fidelity(data, shot, result)
         validate_hybrid_fields(
@@ -3496,11 +3460,7 @@ def validate_duration(
             result.error(f"镜号{shot_no} 超过10秒，必须标注长镜头分类或人工复核理由。")
 
 
-def validate_camera(
-    data: dict[str, Any],
-    shot: dict[str, Any],
-    result: ValidationResult,
-) -> None:
+def validate_camera(shot: dict[str, Any], result: ValidationResult) -> None:
     shot_no = shot.get("shot_no")
     camera = clean_text(shot.get("camera_main_image"))
     lines = [line.strip() for line in camera.split("\n") if line.strip()]
@@ -3513,20 +3473,9 @@ def validate_camera(
     validate_camera_movement_compatibility(shot_no, angle, shot_size, movement, result, clean_text(shot.get("notes")))
     if not lines[1].startswith("【机位逻辑】"):
         result.error(f"镜号{shot_no} 运镜第二行必须以【机位逻辑】开头。")
-    descriptive_camera = descriptive_text_without_dialogue(camera)
-    forbidden_words = list(FORBIDDEN_VISUAL_WORDS)
-    if uses_emotion_performance_guard(data):
-        forbidden_words.extend(EMOTION_PERFORMANCE_FORBIDDEN_WORDS)
-    for word in forbidden_words:
-        if word in descriptive_camera:
+    for word in FORBIDDEN_VISUAL_WORDS:
+        if word in camera:
             result.error(f"镜号{shot_no} 运镜列包含禁用表达：{word}")
-    if uses_emotion_performance_guard(data):
-        precise_match = PRECISE_EXECUTION_VALUE_PATTERN.search(descriptive_camera)
-        if precise_match:
-            result.error(
-                f"镜号{shot_no} 运镜列包含精确执行数值：{precise_match.group(0)}；"
-                "改用相对距离、相对角度、冷暖倾向或可见结果。"
-            )
     for marker in UNSUPPORTED_MARKERS:
         if marker in camera or marker in clean_text(shot.get("notes")):
             result.error(f"镜号{shot_no} 包含后处理/无依据标记：{marker}")
@@ -4174,11 +4123,11 @@ def command_build(args: argparse.Namespace) -> int:
         print_result(result)
         return 1
     if not args.report:
-        result = ValidationResult(errors=[f"{VERSION} build 必须提供 --report，确保四文件原子交付。"])
+        result = ValidationResult(errors=["2.4.3 build 必须提供 --report，确保四文件原子交付。"])
         print_result(result)
         return 1
     if not args.workspace_root:
-        result = ValidationResult(errors=[f"{VERSION} build 必须显式提供 --workspace-root。"])
+        result = ValidationResult(errors=["2.4.3 build 必须显式提供 --workspace-root。"])
         print_result(result)
         return 1
     data = copy.deepcopy(original)
@@ -4256,15 +4205,11 @@ def command_validate(args: argparse.Namespace) -> int:
     data_path = Path(args.data)
     data = load_json(data_path)
     if is_current_contract(data) and not args.report:
-        result = ValidationResult(
-            errors=[f"{metadata_version(data)} validate 必须提供 --report，确保四文件一致性。"]
-        )
+        result = ValidationResult(errors=["2.4.3 validate 必须提供 --report，确保四文件一致性。"])
         print_result(result)
         return 1
     if is_current_contract(data) and not args.workspace_root:
-        result = ValidationResult(
-            errors=[f"{metadata_version(data)} validate 必须显式提供 --workspace-root。"]
-        )
+        result = ValidationResult(errors=["2.4.3 validate 必须显式提供 --workspace-root。"])
         print_result(result)
         return 1
     workspace_root = Path(args.workspace_root) if args.workspace_root else None
@@ -4296,10 +4241,10 @@ def make_parser() -> argparse.ArgumentParser:
     build.add_argument("--data", required=True)
     build.add_argument("--markdown", required=True)
     build.add_argument("--excel", required=True)
-    build.add_argument("--report", help=f"required for {VERSION} four-file atomic delivery")
+    build.add_argument("--report", help="required for 2.4.3 four-file atomic delivery")
     build.add_argument(
         "--workspace-root",
-        help=f"required for {VERSION}; resolves approved_script_path within the workspace",
+        help="required for 2.4.3; resolves approved_script_path within the workspace",
     )
     build.add_argument("--final-signoff", action="store_true", help="require a valid Gate C approval")
     build.set_defaults(func=command_build)
@@ -4315,13 +4260,10 @@ def make_parser() -> argparse.ArgumentParser:
     validate.add_argument("--data", required=True)
     validate.add_argument("--markdown", required=True)
     validate.add_argument("--excel", required=True)
-    validate.add_argument(
-        "--report",
-        help="required for strict-contract versions; optional for older legacy validation",
-    )
+    validate.add_argument("--report", help="required for 2.4.3; optional for legacy read-only validation")
     validate.add_argument(
         "--workspace-root",
-        help="required for strict-contract versions; optional for older legacy validation",
+        help="required for 2.4.3; optional for legacy read-only validation",
     )
     validate.add_argument("--final-signoff", action="store_true", help="require Gate C approved for 2.4.x final deliveries")
     validate.set_defaults(func=command_validate)

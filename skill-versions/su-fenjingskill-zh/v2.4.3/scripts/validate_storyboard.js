@@ -4,12 +4,12 @@ const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
-const VERSION = "2.4.4";
-const RULE_REVISION = "2.4.4-emotion-performance-guard-2026-07-16";
+const VERSION = "2.4.3";
+const RULE_REVISION = "2.4.3-contract-integrity-p2-2026-07-12";
 
 function usage() {
   console.error(
-    "Usage (2.4.4): node validate_storyboard.js --python <python> " +
+    "Usage (2.4.3): node validate_storyboard.js --python <python> " +
       "--data <shot_data.json> --markdown <storyboard.md> --excel <storyboard.xlsx> " +
       "--report <validation_report.json> --workspace-root <dir> [--final-signoff]"
   );
@@ -19,7 +19,7 @@ function usage() {
       "[--report <validation_report.json>] [--workspace-root <dir>]"
   );
   console.error(
-    `Wrapper ${VERSION} (${RULE_REVISION}): strict-contract validation requires both ` +
+    `Wrapper ${VERSION} (${RULE_REVISION}): 2.4.3 validation requires both ` +
       "--report and --workspace-root; legacy validation keeps them optional."
   );
 }

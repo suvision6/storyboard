@@ -28,7 +28,6 @@ RULE_REVISION_240 = "2.4.0-human-gate-stability-2026-07-06"
 RULE_REVISION_241 = "2.4.1-source-lock-2026-07-07"
 RULE_REVISION_242 = "2.4.2-source-lock-entry-guard-2026-07-07"
 RULE_REVISION_243 = "2.4.3-contract-integrity-p2-2026-07-12"
-RULE_REVISION_244 = "2.4.4-emotion-performance-guard-2026-07-16"
 
 
 def valid_data() -> dict:
@@ -251,13 +250,6 @@ def valid_data_243(*, approved_script_path: str = "approved/sample.approved_scri
     return data
 
 
-def valid_data_244(*, approved_script_path: str = "approved/sample.approved_script.txt") -> dict:
-    data = valid_data_243(approved_script_path=approved_script_path)
-    data["metadata"]["version"] = "2.4.4"
-    data["metadata"]["rule_revision"] = RULE_REVISION_244
-    return data
-
-
 def append_review(
     data: dict,
     gate: str,
@@ -283,7 +275,7 @@ def append_review(
     return review
 
 
-def prepare_244_fixture(
+def prepare_243_fixture(
     root: Path,
     *,
     add_gate_c: bool = False,
@@ -296,7 +288,7 @@ def prepare_244_fixture(
     approved_path = root / "approved" / "sample.approved_script.txt"
     approved_path.parent.mkdir(parents=True, exist_ok=True)
 
-    data = valid_data_244()
+    data = valid_data_243()
     approved_path.write_text(
         approved_file_text if approved_file_text is not None else data["script_lock"]["locked_text"],
         encoding="utf-8",
@@ -319,7 +311,7 @@ def prepare_244_fixture(
             workspace_root=root,
         )
     if result.errors:
-        raise AssertionError(f"invalid 2.4.4 fixture: {result.errors}")
+        raise AssertionError(f"invalid 2.4.3 fixture: {result.errors}")
     delivery.update_validation_report(data, result, final_signoff=False)
 
     if add_gate_c:
@@ -354,7 +346,7 @@ class DeliveryContractTests(unittest.TestCase):
     def test_build_writes_7_column_markdown_and_excel(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data, data_path, md_path, xlsx_path, report_path = prepare_244_fixture(root)
+            data, data_path, md_path, xlsx_path, report_path = prepare_243_fixture(root)
             delivery.write_json(data_path, data)
             rc = delivery.main(
                 [
@@ -395,7 +387,7 @@ class DeliveryContractTests(unittest.TestCase):
     def test_validate_wrapper_passes_built_files(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data, data_path, md_path, xlsx_path, report_path = prepare_244_fixture(root)
+            data, data_path, md_path, xlsx_path, report_path = prepare_243_fixture(root)
             delivery.write_json(data_path, data)
             common = [
                 "--data",
@@ -1546,67 +1538,11 @@ class DeliveryContractTests(unittest.TestCase):
         self.assertTrue(any("approved_script_path" in item for item in result.errors), result.errors)
 
 
-class EmotionPerformanceGuard244Tests(unittest.TestCase):
-    def test_visible_emotion_performance_survives_five_field_prompt_derivation(self) -> None:
-        shot = copy.deepcopy(valid_data_244()["shots"][0])
-        shot["camera_main_image"] += "\nA屏住呼吸，手指收紧门框，视线停在桌边。"
-        prompt = delivery.derive_prompt(shot)
-        self.assertEqual(5, len(prompt.splitlines()))
-        self.assertIn("A屏住呼吸，手指收紧门框，视线停在桌边。", prompt)
-
-    def test_244_literary_emotion_phrases_fail_outside_dialogue(self) -> None:
-        for phrase in delivery.EMOTION_PERFORMANCE_FORBIDDEN_WORDS:
-            with self.subTest(phrase=phrase):
-                data = valid_data_244()
-                shot = data["shots"][0]
-                shot["camera_main_image"] += f"\nA{phrase}。"
-                result = delivery.ValidationResult()
-                delivery.validate_camera(data, shot, result)
-                self.assertTrue(any(phrase in item for item in result.errors), result.errors)
-
-    def test_forbidden_language_inside_verbatim_dialogue_is_not_scanned(self) -> None:
-        data = valid_data_244()
-        shot = data["shots"][0]
-        shot["camera_main_image"] += "\nA低声说：“我仿佛心如刀割，离你三米远。”"
-        result = delivery.ValidationResult()
-        delivery.validate_camera(data, shot, result)
-        self.assertFalse(any("禁用表达" in item or "精确执行数值" in item for item in result.errors), result.errors)
-
-    def test_244_precise_execution_values_fail_but_allowed_numbers_pass(self) -> None:
-        forbidden_values = ["向右移动3米", "低机位45度", "色温5600K", "声音440Hz"]
-        for description in forbidden_values:
-            with self.subTest(description=description):
-                data = valid_data_244()
-                shot = data["shots"][0]
-                shot["camera_main_image"] += f"\nA{description}。"
-                result = delivery.ValidationResult()
-                delivery.validate_camera(data, shot, result)
-                self.assertTrue(any("精确执行数值" in item for item in result.errors), result.errors)
-
-        data = valid_data_244()
-        shot = data["shots"][0]
-        shot["camera_main_image"] += "\nA约3秒后抬头，20岁，人物占画面1/2。"
-        result = delivery.ValidationResult()
-        delivery.validate_camera(data, shot, result)
-        self.assertFalse(any("精确执行数值" in item for item in result.errors), result.errors)
-
-    def test_243_exact_distance_keeps_legacy_read_only_semantics(self) -> None:
-        data = valid_data_243()
-        shot = data["shots"][0]
-        shot["camera_main_image"] += "\nA与B相距三米。"
-        result = delivery.ValidationResult()
-        delivery.validate_camera(data, shot, result)
-        self.assertFalse(any("精确执行数值" in item for item in result.errors), result.errors)
-
-
 class ContractIntegrity243Tests(unittest.TestCase):
-    def test_244_version_profile_is_fail_closed_and_build_only(self) -> None:
-        self.assertEqual("2.4.4", delivery.VERSION)
-        self.assertEqual(RULE_REVISION_244, delivery.RULE_REVISION)
-        self.assertTrue(delivery.VERSION_PROFILES["2.4.3"]["contract_integrity"])
-        self.assertTrue(delivery.VERSION_PROFILES["2.4.4"]["contract_integrity"])
-        self.assertFalse(delivery.VERSION_PROFILES["2.4.3"]["emotion_performance_guard"])
-        self.assertTrue(delivery.VERSION_PROFILES["2.4.4"]["emotion_performance_guard"])
+    def test_243_version_profile_is_fail_closed_and_build_only(self) -> None:
+        self.assertEqual("2.4.3", delivery.VERSION)
+        self.assertEqual(RULE_REVISION_243, delivery.RULE_REVISION)
+        self.assertIn("2.4.2", delivery.VERSION_PROFILES)
 
         unknown = valid_data_243()
         unknown["metadata"]["version"] = "9.9.9"
@@ -1620,7 +1556,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
             markdown_path = root / "legacy.md"
             excel_path = root / "legacy.xlsx"
             report_path = root / "legacy.validation_report.json"
-            original = json.dumps(valid_data_243(), ensure_ascii=False, indent=2) + "\n"
+            original = json.dumps(valid_data_242(), ensure_ascii=False, indent=2) + "\n"
             data_path.write_text(original, encoding="utf-8")
             rc = delivery.main(
                 [
@@ -1642,10 +1578,10 @@ class ContractIntegrity243Tests(unittest.TestCase):
             self.assertFalse(markdown_path.exists())
             self.assertFalse(excel_path.exists())
 
-    def test_244_version_and_rule_revision_markers_are_consistent_everywhere(self) -> None:
+    def test_243_version_and_rule_revision_markers_are_consistent_everywhere(self) -> None:
         skill_root = SCRIPT_DIR.parent
-        expected_version = "2.4.4"
-        expected_revision = RULE_REVISION_244
+        expected_version = "2.4.3"
+        expected_revision = "2.4.3-contract-integrity-p2-2026-07-12"
         self.assertEqual(expected_version, (skill_root / "VERSION").read_text(encoding="utf-8-sig").strip())
         self.assertEqual(expected_version, delivery.VERSION)
         self.assertEqual(expected_revision, delivery.RULE_REVISION)
@@ -1653,7 +1589,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
         wrapper = (SCRIPT_DIR / "validate_storyboard.js").read_text(encoding="utf-8-sig")
         self.assertIn(f'const VERSION = "{expected_version}";', wrapper)
         self.assertIn(f'const RULE_REVISION = "{expected_revision}";', wrapper)
-        self.assertIn("strict-contract validation requires both", wrapper)
+        self.assertIn("2.4.3 validation requires both", wrapper)
 
         contract_files = [
             skill_root / "SKILL.md",
@@ -1704,7 +1640,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
     def test_243_real_approved_script_path_and_content_pass(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data, data_path, _, _, _ = prepare_244_fixture(root)
+            data, data_path, _, _, _ = prepare_243_fixture(root)
             result = delivery.validate_data(
                 data,
                 strict_status=True,
@@ -2099,7 +2035,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
     def test_243_latest_review_rejection_duplicate_round_and_stale_hash_fail(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            base, data_path, _, _, _ = prepare_244_fixture(root)
+            base, data_path, _, _, _ = prepare_243_fixture(root)
 
             rejected = copy.deepcopy(base)
             append_review(rejected, "GATE_B", round_no=2, status="rejected")
@@ -2136,7 +2072,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
     def test_243_final_signoff_requires_current_gate_c_hash(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data, data_path, _, _, _ = prepare_244_fixture(root)
+            data, data_path, _, _, _ = prepare_243_fixture(root)
             missing = delivery.validate_data(
                 data,
                 strict_status=False,
@@ -2527,7 +2463,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
     def test_243_strict_report_hash_status_warnings_and_errors_are_recomputed(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            base, data_path, _, _, _ = prepare_244_fixture(root)
+            base, data_path, _, _, _ = prepare_243_fixture(root)
             cases = {
                 "missing hash": lambda data: data["validation_report"].pop("source_json_hash", None),
                 "fake hash": lambda data: data["validation_report"].update(source_json_hash="0" * 64),
@@ -2604,7 +2540,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
     def test_243_full_build_gate_c_validate_and_node_wrapper_flow(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data, data_path, markdown_path, excel_path, report_path = prepare_244_fixture(root)
+            data, data_path, markdown_path, excel_path, report_path = prepare_243_fixture(root)
             delivery.write_json(data_path, data)
             common = [
                 "--data",
@@ -2651,7 +2587,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
     def test_243_build_requires_report_without_mutating_input(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data, data_path, markdown_path, excel_path, _ = prepare_244_fixture(root)
+            data, data_path, markdown_path, excel_path, _ = prepare_243_fixture(root)
             original = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
             data_path.write_text(original, encoding="utf-8")
             rc = delivery.main(
@@ -2675,7 +2611,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
     def test_243_cli_and_node_require_explicit_workspace_root_without_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data, data_path, markdown_path, excel_path, report_path = prepare_244_fixture(root)
+            data, data_path, markdown_path, excel_path, report_path = prepare_243_fixture(root)
             delivery.write_json(data_path, data)
             original = data_path.read_bytes()
             without_root = [
@@ -2708,12 +2644,12 @@ class ContractIntegrity243Tests(unittest.TestCase):
             self.assertNotEqual(0, process.returncode, process.stderr + process.stdout)
             self.assertEqual(original, data_path.read_bytes())
 
-    def test_244_pre_signoff_warn_can_be_kept_then_finally_signed(self) -> None:
+    def test_243_pre_signoff_warn_can_be_kept_then_finally_signed(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
             approved = root / "approved" / "sample.approved_script.txt"
             approved.parent.mkdir(parents=True, exist_ok=True)
-            data = valid_data_244()
+            data = valid_data_243()
             approved.write_text(data["script_lock"]["locked_text"], encoding="utf-8")
             data["shots"][0]["camera_main_image"] += "\n" + "A反复确认门口、桌边和墙面。" * 80
             append_review(data, "GATE_A")
@@ -2752,10 +2688,10 @@ class ContractIntegrity243Tests(unittest.TestCase):
             self.assertEqual(0, delivery.main(["build", *common, "--final-signoff"]))
             self.assertEqual(0, delivery.main(["validate", *common, "--final-signoff"]))
 
-    def test_244_markdown_excel_special_text_and_numeric_round_trip(self) -> None:
+    def test_243_markdown_excel_special_text_and_numeric_round_trip(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data = valid_data_244()
+            data = valid_data_243()
             approved = root / "approved" / "sample.approved_script.txt"
             approved.parent.mkdir(parents=True, exist_ok=True)
             approved.write_text(data["script_lock"]["locked_text"], encoding="utf-8")
@@ -2832,7 +2768,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
     def test_243_corrupt_excel_markdown_and_json_fail_without_traceback(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data, data_path, markdown_path, excel_path, report_path = prepare_244_fixture(root)
+            data, data_path, markdown_path, excel_path, report_path = prepare_243_fixture(root)
             delivery.write_json(data_path, data)
             common = [
                 "--data",
@@ -2861,7 +2797,7 @@ class ContractIntegrity243Tests(unittest.TestCase):
     def test_243_atomic_build_failure_preserves_all_formal_files(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data, data_path, markdown_path, excel_path, report_path = prepare_244_fixture(root)
+            data, data_path, markdown_path, excel_path, report_path = prepare_243_fixture(root)
             delivery.write_json(data_path, data)
             markdown_path.write_text("old-markdown", encoding="utf-8")
             excel_path.write_bytes(b"old-excel")
@@ -3012,7 +2948,7 @@ class P2ContractTests(unittest.TestCase):
     def test_p2_beat_order_inserts_without_renumbering_old_ids(self) -> None:
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
-            data = valid_data_244()
+            data = valid_data_243()
             by_id = {beat["beat_id"]: beat for beat in data["beats"]}
             by_id["B001"]["beat_order"] = "1"
             by_id["B003"]["beat_order"] = "1.5"
@@ -3752,7 +3688,7 @@ class P2ContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root_name:
             root = Path(root_name)
             path = root / "review.shot_data.json"
-            data = valid_data_244()
+            data = valid_data_243()
             delivery.write_json(path, data)
             before = path.read_bytes()
             args = delivery.make_parser().parse_args(

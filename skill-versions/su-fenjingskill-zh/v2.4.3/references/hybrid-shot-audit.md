@@ -1,10 +1,10 @@
 # 混合拆镜审计规则
 
-<!-- for skill-version: 2.4.4 / rule-revision: 2.4.4-emotion-performance-guard-2026-07-16 -->
+<!-- for skill-version: 2.4.3 / rule-revision: 2.4.3-contract-integrity-p2-2026-07-12 -->
 
 在 Gate A 批准后、导演主表锁定（Gate B 提交）前阅读本文件。它用来保留段落主骨架和镜内推进，同时保证关键信息插镜、反应镜、道具特写和 VFX 锚点不被段落长镜糊掉。Markdown/Excel 主表仍然只导出稳定 7 列；本文件新增的审计字段只进入 `shot_data.json`。
 
-本文件所有规则均指 2.4.4 本版规则。事实级切点字段的结构定义以 `continuity-shot-data.md` 为唯一出处，本文件只规定审计与拆合判断。项目专有字面词已迁入可选 `references/project-notes.md`；只有显式复制到 `metadata.project_lexicon` 的词才参与当前数据校验。
+本文件所有规则均指 2.4.3 本版规则。事实级切点字段的结构定义以 `continuity-shot-data.md` 为唯一出处，本文件只规定审计与拆合判断。项目专有字面词已迁入可选 `references/project-notes.md`；只有显式复制到 `metadata.project_lexicon` 的词才参与当前数据校验。
 
 ## 总原则
 
@@ -104,8 +104,6 @@
 - 重大情绪反转：关系或心理转折。
 
 **短反应镜检查**：若 `shot_type == "reaction"`、`insert_priority == "none"`、`duration_seconds <= 3`，且与相邻镜头同场、无新的空间/道具/声音/位置/现实层事实，校验器触发 `merge_candidate` WARN（写入 `validation_report`，经 `warn_resolutions` 处置，**不写入备注**）。对白后同人物短表情反应仍按硬规则 FAIL，必须合并进同一镜。
-
-**情绪表演 Gate B 摘要**：对含 `emotion` fact、`emotional_turn` 或明确表演推进的镜头，逐镜列出情绪依据、可见/可听表现、前后镜连续性、声音/环境反馈依据与保留/修改结论。该摘要只供人工审核，不创建新字段、不新增 `approved_items` token，也不用情绪密度反向主导拆镜。
 
 ## 长镜支撑
 

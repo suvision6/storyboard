@@ -1,4 +1,0 @@
-interface:
-  display_name: "Image2 九宫格分镜"
-  short_description: "生成 Image2 九宫格黑白分镜提示词"
-  default_prompt: "Use $su-image2-storyboard-grid-zh to turn this scene or storyboard table into an Image2 3x3 black-and-white storyboard prompt Markdown file."

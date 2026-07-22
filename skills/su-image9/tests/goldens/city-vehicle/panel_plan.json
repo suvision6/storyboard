@@ -1,0 +1,303 @@
+{
+  "skill": "su-image9",
+  "version": "2.1.1",
+  "schema_version": "2.1",
+  "source": {
+    "file_sha256": "b017579c2b115daa027714a5391bfd2e0e98a00558428ffbafda339997037e0d",
+    "content_hash": "68209feb43c8c19aa11d110d36d99b2747bfe40ce632c20b345aa58c962dbe29",
+    "skill_version": "2.4.2",
+    "validation_status": "PASS",
+    "warning_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "canon": {
+    "version": "2.1.1",
+    "sha256": "f327978101aacd147b62d49117f540d4cf7d81e5a661582ace2ef6ba9e92f5ee"
+  },
+  "reference_bindings": [],
+  "pages": [
+    {
+      "page": "PAGE-01",
+      "scene_id": "S01",
+      "reality_layer": "现实",
+      "page_mode": "single_scene_single_reality_layer",
+      "spatial_anchor_panel": "PANEL-1",
+      "source_shot_nos": [
+        1,
+        2
+      ],
+      "completion_mode": "derived_angle",
+      "panels": [
+        {
+          "panel": "PANEL-1",
+          "panel_kind": "source",
+          "source_shot": 1,
+          "variant_suffix": null,
+          "display_label": "C001",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "轿车",
+            "车钥匙"
+          ],
+          "continuity_state_hash": "86a9ab3ef4d589bd317e0666486e045bb33cb7c1daa0223eba1f6b44905e10b6",
+          "composition_task": "Composition: （A在路边轿车驾驶门外，B在车头一侧，两人同处轴线一侧。）; Camera motion idea: 固定镜头; Visible action state: A和B站在路边轿车旁，A握着车钥匙。",
+          "distance_stage_lock": "pre-transition: keep A.position at 路边 before C002",
+          "fact_delta": "source"
+        },
+        {
+          "panel": "PANEL-2",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "A",
+          "display_label": "C001-A",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-axis wider composition derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "轿车",
+            "车钥匙"
+          ],
+          "continuity_state_hash": "86a9ab3ef4d589bd317e0666486e045bb33cb7c1daa0223eba1f6b44905e10b6",
+          "composition_task": "Use a wider composition on the established side of the axis, revealing only registered geometry. Preserve the source state exactly: Composition: （A在路边轿车驾驶门外，B在车头一侧，两人同处轴线一侧。）; Camera motion idea: 固定镜头; Visible action state: A和B站在路边轿车旁，A握着车钥匙。",
+          "distance_stage_lock": "pre-transition: keep A.position at 路边 before C002",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-3",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "B",
+          "display_label": "C001-B",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-axis tighter composition derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "轿车",
+            "车钥匙"
+          ],
+          "continuity_state_hash": "86a9ab3ef4d589bd317e0666486e045bb33cb7c1daa0223eba1f6b44905e10b6",
+          "composition_task": "Use a tighter composition on the same axis without advancing the action or emotional result. Preserve the source state exactly: Composition: （A在路边轿车驾驶门外，B在车头一侧，两人同处轴线一侧。）; Camera motion idea: 固定镜头; Visible action state: A和B站在路边轿车旁，A握着车钥匙。",
+          "distance_stage_lock": "pre-transition: keep A.position at 路边 before C002",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-4",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "C",
+          "display_label": "C001-C",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-side three-quarter view derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "轿车",
+            "车钥匙"
+          ],
+          "continuity_state_hash": "86a9ab3ef4d589bd317e0666486e045bb33cb7c1daa0223eba1f6b44905e10b6",
+          "composition_task": "Use a three-quarter view from the established side of the axis while preserving eyelines and positions. Preserve the source state exactly: Composition: （A在路边轿车驾驶门外，B在车头一侧，两人同处轴线一侧。）; Camera motion idea: 固定镜头; Visible action state: A和B站在路边轿车旁，A握着车钥匙。",
+          "distance_stage_lock": "pre-transition: keep A.position at 路边 before C002",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-5",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "D",
+          "display_label": "C001-D",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-side profile view derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "轿车",
+            "车钥匙"
+          ],
+          "continuity_state_hash": "86a9ab3ef4d589bd317e0666486e045bb33cb7c1daa0223eba1f6b44905e10b6",
+          "composition_task": "Use a profile view from the established side of the axis without reversing screen direction. Preserve the source state exactly: Composition: （A在路边轿车驾驶门外，B在车头一侧，两人同处轴线一侧。）; Camera motion idea: 固定镜头; Visible action state: A和B站在路边轿车旁，A握着车钥匙。",
+          "distance_stage_lock": "pre-transition: keep A.position at 路边 before C002",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-6",
+          "panel_kind": "source",
+          "source_shot": 2,
+          "variant_suffix": null,
+          "display_label": "C002",
+          "source_camera_tag": "侧面平视, 双人中景, 横移跟拍",
+          "drawn_camera_tag": "侧面平视, 双人中景, 横移跟拍",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "轿车",
+            "车钥匙"
+          ],
+          "continuity_state_hash": "214a799aee8fa8a75c2319ee71b67fe885e1f21d596dd76b36d58c09932681e8",
+          "composition_task": "Composition: 可见主体：A、B；可见道具：轿车、车钥匙。; Camera motion idea: 横移跟拍; Visible action state: A到达驾驶门边仍握着车钥匙，B说：“出发。”",
+          "distance_stage_lock": "endpoint-transition: A.position 路边 -> 驾驶门边 (evidence: B002-F01)",
+          "fact_delta": "source"
+        },
+        {
+          "panel": "PANEL-7",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "A",
+          "display_label": "C002-A",
+          "source_camera_tag": "侧面平视, 双人中景, 横移跟拍",
+          "drawn_camera_tag": "same-axis wider composition derived from 侧面平视, 双人中景, 横移跟拍",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "轿车",
+            "车钥匙"
+          ],
+          "continuity_state_hash": "214a799aee8fa8a75c2319ee71b67fe885e1f21d596dd76b36d58c09932681e8",
+          "composition_task": "Use a wider composition on the established side of the axis, revealing only registered geometry. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：轿车、车钥匙。; Camera motion idea: 横移跟拍; Visible action state: A到达驾驶门边仍握着车钥匙，B说：“出发。”",
+          "distance_stage_lock": "endpoint-transition: A.position 路边 -> 驾驶门边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-8",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "B",
+          "display_label": "C002-B",
+          "source_camera_tag": "侧面平视, 双人中景, 横移跟拍",
+          "drawn_camera_tag": "same-axis tighter composition derived from 侧面平视, 双人中景, 横移跟拍",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "轿车",
+            "车钥匙"
+          ],
+          "continuity_state_hash": "214a799aee8fa8a75c2319ee71b67fe885e1f21d596dd76b36d58c09932681e8",
+          "composition_task": "Use a tighter composition on the same axis without advancing the action or emotional result. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：轿车、车钥匙。; Camera motion idea: 横移跟拍; Visible action state: A到达驾驶门边仍握着车钥匙，B说：“出发。”",
+          "distance_stage_lock": "endpoint-transition: A.position 路边 -> 驾驶门边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-9",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "C",
+          "display_label": "C002-C",
+          "source_camera_tag": "侧面平视, 双人中景, 横移跟拍",
+          "drawn_camera_tag": "same-side three-quarter view derived from 侧面平视, 双人中景, 横移跟拍",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "轿车",
+            "车钥匙"
+          ],
+          "continuity_state_hash": "214a799aee8fa8a75c2319ee71b67fe885e1f21d596dd76b36d58c09932681e8",
+          "composition_task": "Use a three-quarter view from the established side of the axis while preserving eyelines and positions. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：轿车、车钥匙。; Camera motion idea: 横移跟拍; Visible action state: A到达驾驶门边仍握着车钥匙，B说：“出发。”",
+          "distance_stage_lock": "endpoint-transition: A.position 路边 -> 驾驶门边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        }
+      ]
+    }
+  ],
+  "release_ready": true
+}

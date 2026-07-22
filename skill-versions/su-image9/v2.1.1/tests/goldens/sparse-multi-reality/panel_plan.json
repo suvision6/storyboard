@@ -1,0 +1,568 @@
+{
+  "skill": "su-image9",
+  "version": "2.1.1",
+  "schema_version": "2.1",
+  "source": {
+    "file_sha256": "a053b4aa9de018da8cc098355ef9551d852791f56473cf054063f42289bebde3",
+    "content_hash": "8130e4f5c803b5ff69fa674ab525929315a4da02356f39edd0de4660ad4637b2",
+    "skill_version": "2.4.2",
+    "validation_status": "PASS",
+    "warning_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "canon": {
+    "version": "2.1.1",
+    "sha256": "f327978101aacd147b62d49117f540d4cf7d81e5a661582ace2ef6ba9e92f5ee"
+  },
+  "reference_bindings": [],
+  "pages": [
+    {
+      "page": "PAGE-01",
+      "scene_id": "S01",
+      "reality_layer": "现实",
+      "page_mode": "single_scene_single_reality_layer",
+      "spatial_anchor_panel": "PANEL-1",
+      "source_shot_nos": [
+        1
+      ],
+      "completion_mode": "derived_angle",
+      "panels": [
+        {
+          "panel": "PANEL-1",
+          "panel_kind": "source",
+          "source_shot": 1,
+          "variant_suffix": null,
+          "display_label": "C001",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "c2f89c0824effe39ba3c0c6362f9932098664a931fee75a2f15653ef1b77b0e9",
+          "composition_task": "Composition: （A在门口，B在桌边，两人相对。）; Camera motion idea: 固定镜头; Visible action state: A和B站在门口，A握着钥匙。",
+          "distance_stage_lock": "none",
+          "fact_delta": "source"
+        },
+        {
+          "panel": "PANEL-2",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "A",
+          "display_label": "C001-A",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-axis wider composition derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "c2f89c0824effe39ba3c0c6362f9932098664a931fee75a2f15653ef1b77b0e9",
+          "composition_task": "Use a wider composition on the established side of the axis, revealing only registered geometry. Preserve the source state exactly: Composition: （A在门口，B在桌边，两人相对。）; Camera motion idea: 固定镜头; Visible action state: A和B站在门口，A握着钥匙。",
+          "distance_stage_lock": "none",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-3",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "B",
+          "display_label": "C001-B",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-axis tighter composition derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "c2f89c0824effe39ba3c0c6362f9932098664a931fee75a2f15653ef1b77b0e9",
+          "composition_task": "Use a tighter composition on the same axis without advancing the action or emotional result. Preserve the source state exactly: Composition: （A在门口，B在桌边，两人相对。）; Camera motion idea: 固定镜头; Visible action state: A和B站在门口，A握着钥匙。",
+          "distance_stage_lock": "none",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-4",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "C",
+          "display_label": "C001-C",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-side three-quarter view derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "c2f89c0824effe39ba3c0c6362f9932098664a931fee75a2f15653ef1b77b0e9",
+          "composition_task": "Use a three-quarter view from the established side of the axis while preserving eyelines and positions. Preserve the source state exactly: Composition: （A在门口，B在桌边，两人相对。）; Camera motion idea: 固定镜头; Visible action state: A和B站在门口，A握着钥匙。",
+          "distance_stage_lock": "none",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-5",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "D",
+          "display_label": "C001-D",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-side profile view derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "c2f89c0824effe39ba3c0c6362f9932098664a931fee75a2f15653ef1b77b0e9",
+          "composition_task": "Use a profile view from the established side of the axis without reversing screen direction. Preserve the source state exactly: Composition: （A在门口，B在桌边，两人相对。）; Camera motion idea: 固定镜头; Visible action state: A和B站在门口，A握着钥匙。",
+          "distance_stage_lock": "none",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-6",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "E",
+          "display_label": "C001-E",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-side high angle derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "c2f89c0824effe39ba3c0c6362f9932098664a931fee75a2f15653ef1b77b0e9",
+          "composition_task": "Use a restrained high angle from the established side, preserving the identical action state and geometry. Preserve the source state exactly: Composition: （A在门口，B在桌边，两人相对。）; Camera motion idea: 固定镜头; Visible action state: A和B站在门口，A握着钥匙。",
+          "distance_stage_lock": "none",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-7",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "F",
+          "display_label": "C001-F",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-side low angle derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "c2f89c0824effe39ba3c0c6362f9932098664a931fee75a2f15653ef1b77b0e9",
+          "composition_task": "Use a restrained low angle from the established side, preserving the identical action state and geometry. Preserve the source state exactly: Composition: （A在门口，B在桌边，两人相对。）; Camera motion idea: 固定镜头; Visible action state: A和B站在门口，A握着钥匙。",
+          "distance_stage_lock": "none",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-8",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "G",
+          "display_label": "C001-G",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "same-side over-shoulder view derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "c2f89c0824effe39ba3c0c6362f9932098664a931fee75a2f15653ef1b77b0e9",
+          "composition_task": "Use an over-shoulder view only between the already visible characters; preserve eyelines and screen sides. Preserve the source state exactly: Composition: （A在门口，B在桌边，两人相对。）; Camera motion idea: 固定镜头; Visible action state: A和B站在门口，A握着钥匙。",
+          "distance_stage_lock": "none",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-9",
+          "panel_kind": "derived_angle",
+          "source_shot": 1,
+          "variant_suffix": "H",
+          "display_label": "C001-H",
+          "source_camera_tag": "平视, 双人中景, 固定镜头",
+          "drawn_camera_tag": "registered-prop insert derived from 平视, 双人中景, 固定镜头",
+          "beat_ids": [
+            "B001"
+          ],
+          "covered_fact_ids": [
+            "B001-F01",
+            "B001-F02"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "c2f89c0824effe39ba3c0c6362f9932098664a931fee75a2f15653ef1b77b0e9",
+          "composition_task": "Use an insert of an already visible registered prop without changing its owner, position, state, or action stage. Preserve the source state exactly: Composition: （A在门口，B在桌边，两人相对。）; Camera motion idea: 固定镜头; Visible action state: A和B站在门口，A握着钥匙。",
+          "distance_stage_lock": "none",
+          "fact_delta": "none"
+        }
+      ]
+    },
+    {
+      "page": "PAGE-02",
+      "scene_id": "S01",
+      "reality_layer": "回忆",
+      "page_mode": "single_scene_single_reality_layer",
+      "spatial_anchor_panel": "PANEL-1",
+      "source_shot_nos": [
+        2
+      ],
+      "completion_mode": "derived_angle",
+      "panels": [
+        {
+          "panel": "PANEL-1",
+          "panel_kind": "source",
+          "source_shot": 2,
+          "variant_suffix": null,
+          "display_label": "C002",
+          "source_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "drawn_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "8ad0b5ca3af5480a6f43b05866f1e37913484bf8c9be877dcdf3e9f0c1f03121",
+          "composition_task": "Composition: 可见主体：A、B；可见道具：钥匙。; Camera motion idea: 轻微横移; Visible action state: A到达桌边仍握着钥匙，B说：“到了。”",
+          "distance_stage_lock": "endpoint-transition: A.position 门口 -> 桌边 (evidence: B002-F01)",
+          "fact_delta": "source"
+        },
+        {
+          "panel": "PANEL-2",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "A",
+          "display_label": "C002-A",
+          "source_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "drawn_camera_tag": "same-axis wider composition derived from 同侧三分之四, 双人中景, 轻微横移",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "8ad0b5ca3af5480a6f43b05866f1e37913484bf8c9be877dcdf3e9f0c1f03121",
+          "composition_task": "Use a wider composition on the established side of the axis, revealing only registered geometry. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：钥匙。; Camera motion idea: 轻微横移; Visible action state: A到达桌边仍握着钥匙，B说：“到了。”",
+          "distance_stage_lock": "endpoint-transition: A.position 门口 -> 桌边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-3",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "B",
+          "display_label": "C002-B",
+          "source_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "drawn_camera_tag": "same-axis tighter composition derived from 同侧三分之四, 双人中景, 轻微横移",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "8ad0b5ca3af5480a6f43b05866f1e37913484bf8c9be877dcdf3e9f0c1f03121",
+          "composition_task": "Use a tighter composition on the same axis without advancing the action or emotional result. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：钥匙。; Camera motion idea: 轻微横移; Visible action state: A到达桌边仍握着钥匙，B说：“到了。”",
+          "distance_stage_lock": "endpoint-transition: A.position 门口 -> 桌边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-4",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "C",
+          "display_label": "C002-C",
+          "source_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "drawn_camera_tag": "same-side three-quarter view derived from 同侧三分之四, 双人中景, 轻微横移",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "8ad0b5ca3af5480a6f43b05866f1e37913484bf8c9be877dcdf3e9f0c1f03121",
+          "composition_task": "Use a three-quarter view from the established side of the axis while preserving eyelines and positions. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：钥匙。; Camera motion idea: 轻微横移; Visible action state: A到达桌边仍握着钥匙，B说：“到了。”",
+          "distance_stage_lock": "endpoint-transition: A.position 门口 -> 桌边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-5",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "D",
+          "display_label": "C002-D",
+          "source_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "drawn_camera_tag": "same-side profile view derived from 同侧三分之四, 双人中景, 轻微横移",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "8ad0b5ca3af5480a6f43b05866f1e37913484bf8c9be877dcdf3e9f0c1f03121",
+          "composition_task": "Use a profile view from the established side of the axis without reversing screen direction. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：钥匙。; Camera motion idea: 轻微横移; Visible action state: A到达桌边仍握着钥匙，B说：“到了。”",
+          "distance_stage_lock": "endpoint-transition: A.position 门口 -> 桌边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-6",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "E",
+          "display_label": "C002-E",
+          "source_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "drawn_camera_tag": "same-side high angle derived from 同侧三分之四, 双人中景, 轻微横移",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "8ad0b5ca3af5480a6f43b05866f1e37913484bf8c9be877dcdf3e9f0c1f03121",
+          "composition_task": "Use a restrained high angle from the established side, preserving the identical action state and geometry. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：钥匙。; Camera motion idea: 轻微横移; Visible action state: A到达桌边仍握着钥匙，B说：“到了。”",
+          "distance_stage_lock": "endpoint-transition: A.position 门口 -> 桌边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-7",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "F",
+          "display_label": "C002-F",
+          "source_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "drawn_camera_tag": "same-side low angle derived from 同侧三分之四, 双人中景, 轻微横移",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "8ad0b5ca3af5480a6f43b05866f1e37913484bf8c9be877dcdf3e9f0c1f03121",
+          "composition_task": "Use a restrained low angle from the established side, preserving the identical action state and geometry. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：钥匙。; Camera motion idea: 轻微横移; Visible action state: A到达桌边仍握着钥匙，B说：“到了。”",
+          "distance_stage_lock": "endpoint-transition: A.position 门口 -> 桌边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-8",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "G",
+          "display_label": "C002-G",
+          "source_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "drawn_camera_tag": "same-side over-shoulder view derived from 同侧三分之四, 双人中景, 轻微横移",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "8ad0b5ca3af5480a6f43b05866f1e37913484bf8c9be877dcdf3e9f0c1f03121",
+          "composition_task": "Use an over-shoulder view only between the already visible characters; preserve eyelines and screen sides. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：钥匙。; Camera motion idea: 轻微横移; Visible action state: A到达桌边仍握着钥匙，B说：“到了。”",
+          "distance_stage_lock": "endpoint-transition: A.position 门口 -> 桌边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        },
+        {
+          "panel": "PANEL-9",
+          "panel_kind": "derived_angle",
+          "source_shot": 2,
+          "variant_suffix": "H",
+          "display_label": "C002-H",
+          "source_camera_tag": "同侧三分之四, 双人中景, 轻微横移",
+          "drawn_camera_tag": "registered-prop insert derived from 同侧三分之四, 双人中景, 轻微横移",
+          "beat_ids": [
+            "B002",
+            "B003"
+          ],
+          "covered_fact_ids": [
+            "B002-F01",
+            "B002-F02",
+            "B003-F01"
+          ],
+          "visible_characters": [
+            "A",
+            "B"
+          ],
+          "offscreen_characters": [],
+          "visible_props": [
+            "钥匙"
+          ],
+          "continuity_state_hash": "8ad0b5ca3af5480a6f43b05866f1e37913484bf8c9be877dcdf3e9f0c1f03121",
+          "composition_task": "Use an insert of an already visible registered prop without changing its owner, position, state, or action stage. Preserve the source state exactly: Composition: 可见主体：A、B；可见道具：钥匙。; Camera motion idea: 轻微横移; Visible action state: A到达桌边仍握着钥匙，B说：“到了。”",
+          "distance_stage_lock": "endpoint-transition: A.position 门口 -> 桌边 (evidence: B002-F01)",
+          "fact_delta": "none"
+        }
+      ]
+    }
+  ],
+  "release_ready": true
+}

@@ -1,8 +1,8 @@
 # su-image9 Style And Negative Reference
 
-<!-- ref-version: 2.0.2 -->
+<!-- ref-version: 2.0.3 -->
 
-## v2.0.2 Rule
+## v2.0.3 Rule
 
 `SYSTEM_STYLE_LAYER`、几何蓝图、硬词清单和 `NEGATIVE_CONSTRAINTS` 是生成层合同，不得被预算、词表、人工确认或 references 文件削弱。
 
@@ -20,7 +20,7 @@ NEGATIVE_CONSTRAINTS:
 @CANON(NEGATIVE_CONSTRAINTS)
 ```
 
-validator 在场时必须编译展开；validator 或 canon 缺失时，直接从 `SKILL.md` 内联副本逐字写入提示词，并在中文分析区声明降级模式。
+validator 在场时必须编译展开，并严格比对 canon 文件、SKILL 内联副本和 validator 快照。禁止 `canon_autofixed`。validator 或 canon 缺失时只能从 `SKILL.md` 内联副本生成诊断草稿，并设置 `release_ready=false`、返回 `REVIEW_REQUIRED`；不得正式生图。
 
 ## Forbidden In Final Image Text
 

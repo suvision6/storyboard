@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image2 9格石墨分镜"
+  short_description: "生成 v2.0.3 失败封闭版 Image2 3x3 黑白石墨分镜提示词"
+  default_prompt: "Use $su-image9 v2.0.3 to derive an Image2 3x3 monochrome graphite storyboard prompt package from validated shot_data.json. Preserve source-shot order and facts, keep panel_plan.json as the machine track, render PANEL-1 through PANEL-9 as natural-language visual descriptions, and require strict agreement among the inline lock blocks, canon-locks.md, and validator snapshot. Never invent generic locations, objects, vehicles, characters, or effects. A missing validator or canon, deprecated text-only mode, unsuitable close-up first shot, cross-scene or cross-layer page, or unresolved sparse-page conflict must set release_ready=false and return REVIEW_REQUIRED; do not generate images from that package. Never modify su-fenjingskill-zh or its primary table, Prompt column, Storyboard column, Excel, or validation scripts."

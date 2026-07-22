@@ -1,4 +1,0 @@
-interface:
-  display_name: "Image2 九宫格纯文字版"
-  short_description: "无参考图时生成 Image2 九宫格提示词"
-  default_prompt: "Use $su-image2-storyboard-grid-text-zh to turn this screenplay text or storyboard table into an Image2 3x3 black-and-white storyboard prompt Markdown file."
